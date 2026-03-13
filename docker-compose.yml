@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: beehivejournal-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=/data/db.sqlite
+      - JWT_SECRET=${JWT_SECRET}
+      - PORT=3000
+    volumes:
+      # Named volume for SQLite persistence.
+      # The database survives container recreation, image rebuilds, and restarts.
+      - app-data:/data
+    ports:
+      # Map container port 3000 to host port 3000 for local testing.
+      # In production (Sprint 10), Nginx proxies to this on the internal network only.
+      - '3000:3000'
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  # Named volume for the SQLite database file.
+  # Persists across: container restarts, `docker compose down`, image rebuilds.
+  # NOT persisted across: `docker compose down -v` (explicitly deletes volumes).
+  app-data:
+    driver: local
+
+# NOTE: The nginx and certbot services are added in Sprint 10 (Story 8.1).
