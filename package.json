@@ -11,7 +11,12 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
+		"db:generate": "dotenv -e .env.local -- drizzle-kit generate",
+		"db:studio": "dotenv -e .env.local -- drizzle-kit studio",
+		"db:drop": "dotenv -e .env.local -- drizzle-kit drop",
+		"create-user": "dotenv -e .env.local -- tsx scripts/create-user.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
@@ -22,6 +27,7 @@
 		"@types/better-sqlite3": "^7.6.13",
 		"@typescript-eslint/eslint-plugin": "^8.57.0",
 		"@typescript-eslint/parser": "^8.57.0",
+		"dotenv-cli": "^11.0.0",
 		"drizzle-kit": "^0.31.9",
 		"eslint": "^10.0.3",
 		"eslint-plugin-svelte": "^3.15.2",
@@ -31,11 +37,14 @@
 		"svelte": "^5.51.0",
 		"svelte-check": "^4.4.2",
 		"svelte-eslint-parser": "^1.6.0",
+		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
 		"vite": "^7.3.1"
 	},
 	"dependencies": {
+		"argon2": "^0.44.0",
 		"better-sqlite3": "^12.6.2",
-		"drizzle-orm": "^0.45.1"
+		"drizzle-orm": "^0.45.1",
+		"jose": "^6.2.1"
 	}
 }
