@@ -1,0 +1,14 @@
+# BMAD framework files — not app code
+_bmad/
+_bmad-output/
+
+# Claude config
+.claude/
+
+# Build artifacts
+build/
+.svelte-kit/
+node_modules/
+
+# Generated migration files
+src/lib/server/db/migrations/

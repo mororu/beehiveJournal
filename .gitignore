@@ -1,0 +1,41 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env — NEVER commit these
+.env
+.env.*
+!.env.example
+!.env.test
+
+# SQLite database files — data lives in Docker volumes, not the repo
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+data/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Claude worktrees (embedded git repos)
+.claude/worktrees/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
