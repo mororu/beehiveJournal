@@ -34,6 +34,8 @@ export default [
 		},
 		rules: {
 			...svelte.configs.recommended.rules,
+			// Ignore unused function parameter names (common in TS type-only positions)
+			'no-unused-vars': ['error', { args: 'none' }],
 		},
 	},
 	{

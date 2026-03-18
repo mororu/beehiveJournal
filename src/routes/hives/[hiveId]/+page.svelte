@@ -1,15 +1,14 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import HealthBadge from '$lib/components/HealthBadge.svelte';
 	import { formatDate } from '$lib/client/utils/date.js';
 	import type { PageData } from './$types.js';
 
 	let { data }: { data: PageData } = $props();
 
-	// ── Success toast (Story 4.5) ─────────────────────────────────────────────
-	// Shown when redirected here with ?saved=1 after creating an inspection.
-	// Auto-dismisses after 3 seconds.
+	// ── Success toast ──────────────────────────────────────────────────────────
 	let toastVisible = $state(false);
-	// Initialise from server data once on mount — $effect reads reactive data correctly
 	$effect(() => {
 		toastVisible = data.justSaved;
 	});
@@ -20,6 +19,39 @@
 		}
 	});
 
+	// ── Tab state ─────────────────────────────────────────────────────────────
+	type Tab = 'list' | 'timeline';
+	let activeTab = $state<Tab>('list');
+
+	// ── Date range filter (Story 5.4) ─────────────────────────────────────────
+	let filterFrom = $state('');
+	let filterTo = $state('');
+
+	// Convert a date input string "YYYY-MM-DD" to the start/end of that day (epoch seconds)
+	function dateToStartEpoch(s: string): number {
+		return Math.floor(new Date(s + 'T00:00:00').getTime() / 1000);
+	}
+	function dateToEndEpoch(s: string): number {
+		return Math.floor(new Date(s + 'T23:59:59').getTime() / 1000);
+	}
+
+	// Filtered inspection list — recomputed reactively when filter changes
+	const filteredInspections = $derived(
+		data.inspections.filter((i) => {
+			if (filterFrom && i.inspectedAt < dateToStartEpoch(filterFrom)) return false;
+			if (filterTo && i.inspectedAt > dateToEndEpoch(filterTo)) return false;
+			return true;
+		})
+	);
+
+	const isFiltered = $derived(filterFrom !== '' || filterTo !== '');
+
+	function clearFilter() {
+		filterFrom = '';
+		filterTo = '';
+	}
+
+	// ── Queen label map ────────────────────────────────────────────────────────
 	const queenLabels: Record<string, string> = {
 		seen: 'Seen',
 		not_seen: 'Not Seen',
@@ -37,7 +69,7 @@
 {/if}
 
 <div class="hive-detail">
-	<!-- Header -->
+	<!-- ── Header ──────────────────────────────────────────────────────────── -->
 	<div class="hive-detail__header">
 		<a href="/hives" class="back-link">← Hives</a>
 		<div class="hive-detail__title-row">
@@ -54,43 +86,118 @@
 		{/if}
 	</div>
 
-	<!-- Primary CTA -->
+	<!-- ── Primary CTA ────────────────────────────────────────────────────── -->
 	<div class="hive-detail__cta">
 		<a href="/hives/{data.hive.id}/inspect" class="btn btn--primary">+ New Inspection</a>
 	</div>
 
-	<!-- Inspection history list -->
-	{#if data.inspections.length === 0}
-		<div class="empty-state">
-			<p>No inspections yet — tap <strong>New Inspection</strong> to start.</p>
+	<!-- ── Date range filter (Story 5.4) ──────────────────────────────────── -->
+	{#if data.inspections.length > 0}
+		<div class="filter-bar">
+			<div class="filter-bar__inputs">
+				<label class="filter-label" for="filterFrom">From</label>
+				<input
+					class="filter-input"
+					type="date"
+					id="filterFrom"
+					bind:value={filterFrom}
+					max={filterTo || undefined}
+				/>
+				<label class="filter-label" for="filterTo">To</label>
+				<input
+					class="filter-input"
+					type="date"
+					id="filterTo"
+					bind:value={filterTo}
+					min={filterFrom || undefined}
+				/>
+			</div>
+			{#if isFiltered}
+				<button class="filter-clear" type="button" onclick={clearFilter}> Clear filter </button>
+			{/if}
 		</div>
-	{:else}
-		<ul class="inspection-list">
-			{#each data.inspections as insp (insp.id)}
-				<li>
-					<a href="/hives/{data.hive.id}/inspections/{insp.id}" class="inspection-card">
-						<div class="inspection-card__top">
-							<span class="inspection-card__date">{formatDate(insp.inspectedAt)}</span>
-							<div class="inspection-card__badges">
-								{#if !insp.weatherUnavailable && insp.weatherTemp != null}
-									<span class="weather-chip">{insp.weatherTemp}°C</span>
-									{#if insp.weatherDesc}
-										<span class="weather-chip">{insp.weatherDesc}</span>
+	{/if}
+
+	<!-- ── Tab bar ────────────────────────────────────────────────────────── -->
+	{#if data.inspections.length > 0}
+		<div class="tab-bar" role="tablist">
+			<button
+				class="tab-btn"
+				class:tab-btn--active={activeTab === 'list'}
+				role="tab"
+				aria-selected={activeTab === 'list'}
+				onclick={() => (activeTab = 'list')}
+			>
+				History
+				{#if isFiltered}
+					<span class="tab-count">({filteredInspections.length})</span>
+				{:else}
+					<span class="tab-count">({data.inspections.length})</span>
+				{/if}
+			</button>
+			<button
+				class="tab-btn"
+				class:tab-btn--active={activeTab === 'timeline'}
+				role="tab"
+				aria-selected={activeTab === 'timeline'}
+				onclick={() => (activeTab = 'timeline')}
+			>
+				Timeline
+			</button>
+		</div>
+	{/if}
+
+	<!-- ── History tab ────────────────────────────────────────────────────── -->
+	{#if activeTab === 'list'}
+		{#if data.inspections.length === 0}
+			<div class="empty-state">
+				<p>No inspections yet — tap <strong>New Inspection</strong> to start.</p>
+			</div>
+		{:else if filteredInspections.length === 0}
+			<div class="empty-state">
+				<p>No inspections in this date range.</p>
+			</div>
+		{:else}
+			<ul class="inspection-list">
+				{#each filteredInspections as insp (insp.id)}
+					<li>
+						<a href="/hives/{data.hive.id}/inspections/{insp.id}" class="inspection-card">
+							<div class="inspection-card__top">
+								<span class="inspection-card__date">{formatDate(insp.inspectedAt)}</span>
+								<div class="inspection-card__badges">
+									{#if !insp.weatherUnavailable && insp.weatherTemp != null}
+										<span class="weather-chip">{insp.weatherTemp}°C</span>
+										{#if insp.weatherDesc}
+											<span class="weather-chip">{insp.weatherDesc}</span>
+										{/if}
 									{/if}
-								{/if}
-								<span class="queen-chip queen-chip--{insp.queenStatus}">
-									{queenLabels[insp.queenStatus] ?? insp.queenStatus}
-								</span>
-								<HealthBadge score={insp.healthScore} />
+									<span class="queen-chip queen-chip--{insp.queenStatus}">
+										{queenLabels[insp.queenStatus] ?? insp.queenStatus}
+									</span>
+									<HealthBadge score={insp.healthScore} />
+								</div>
 							</div>
-						</div>
-						{#if insp.behaviourNotes}
-							<p class="inspection-card__notes">{insp.behaviourNotes}</p>
-						{/if}
-					</a>
-				</li>
-			{/each}
-		</ul>
+							{#if insp.behaviourNotes}
+								<p class="inspection-card__notes">{insp.behaviourNotes}</p>
+							{/if}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	{/if}
+
+	<!-- ── Timeline tab (Story 5.2) ───────────────────────────────────────── -->
+	{#if activeTab === 'timeline'}
+		{#if browser}
+			{#await import('$lib/components/HealthChart.svelte') then { default: HealthChart }}
+				<HealthChart
+					inspections={filteredInspections}
+					hiveId={data.hive.id}
+					onPointClick={(id) => goto(`/hives/${data.hive.id}/inspections/${id}`)}
+				/>
+			{/await}
+		{/if}
 	{/if}
 </div>
 
@@ -176,7 +283,116 @@
 	}
 
 	.hive-detail__cta {
-		margin-bottom: 1.5rem;
+		margin-bottom: 1.25rem;
+	}
+
+	/* ── Date range filter ── */
+	.filter-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		padding: 0.75rem 1rem;
+		background: var(--color-surface, #ffffff);
+		border: 1px solid var(--color-border, #e5e7eb);
+		border-radius: 8px;
+		margin-bottom: 1rem;
+	}
+
+	.filter-bar__inputs {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		flex: 1;
+	}
+
+	.filter-label {
+		font-size: 0.8rem;
+		font-weight: 500;
+		color: var(--color-text-muted, #6b7280);
+		white-space: nowrap;
+	}
+
+	.filter-input {
+		height: 36px;
+		padding: 0 0.625rem;
+		font-size: 0.875rem;
+		color: var(--color-text, #1a1a1a);
+		background: var(--color-input-bg, #ffffff);
+		border: 1.5px solid var(--color-border, #d1d5db);
+		border-radius: 6px;
+		font-family: inherit;
+		flex: 1;
+		min-width: 130px;
+		max-width: 170px;
+	}
+
+	.filter-input:focus {
+		outline: none;
+		border-color: var(--color-accent, #f59e0b);
+		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+	}
+
+	.filter-clear {
+		font-size: 0.8rem;
+		font-weight: 500;
+		color: var(--color-text-muted, #6b7280);
+		background: none;
+		border: 1px solid var(--color-border, #d1d5db);
+		border-radius: 6px;
+		padding: 0.3rem 0.75rem;
+		height: 36px;
+		cursor: pointer;
+		white-space: nowrap;
+		font-family: inherit;
+		transition: background-color 0.15s ease;
+	}
+
+	.filter-clear:hover {
+		background: var(--color-hover, #f3f4f6);
+	}
+
+	/* ── Tab bar ── */
+	.tab-bar {
+		display: flex;
+		gap: 0;
+		border-bottom: 2px solid var(--color-border, #e5e7eb);
+		margin-bottom: 1.25rem;
+	}
+
+	.tab-btn {
+		padding: 0.625rem 1.25rem;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--color-text-muted, #6b7280);
+		background: none;
+		border: none;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -2px;
+		cursor: pointer;
+		font-family: inherit;
+		transition:
+			color 0.15s ease,
+			border-color 0.15s ease;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.tab-btn:hover {
+		color: var(--color-text, #1a1a1a);
+	}
+
+	.tab-btn--active {
+		color: var(--color-text, #1a1a1a);
+		font-weight: 600;
+		border-bottom-color: var(--color-accent, #f59e0b);
+	}
+
+	.tab-count {
+		font-size: 0.75rem;
+		color: var(--color-text-muted, #6b7280);
 	}
 
 	/* ── Empty state ── */
@@ -246,7 +462,6 @@
 		flex-shrink: 0;
 	}
 
-	/* Weather chips */
 	.weather-chip {
 		font-size: 0.75rem;
 		color: var(--color-text-muted, #6b7280);
@@ -256,7 +471,6 @@
 		white-space: nowrap;
 	}
 
-	/* Queen status chips */
 	.queen-chip {
 		font-size: 0.75rem;
 		font-weight: 500;
@@ -278,7 +492,6 @@
 		color: #92400e;
 	}
 
-	/* Notes preview — 2-line clamp */
 	.inspection-card__notes {
 		font-size: 0.825rem;
 		color: var(--color-text-muted, #6b7280);
@@ -324,7 +537,6 @@
 	.btn--ghost:hover {
 		background: var(--color-hover, #f3f4f6);
 	}
-
 	.btn--sm {
 		height: 36px;
 		font-size: 0.85rem;

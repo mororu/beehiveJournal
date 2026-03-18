@@ -44,6 +44,7 @@
 	"dependencies": {
 		"argon2": "^0.44.0",
 		"better-sqlite3": "^12.6.2",
+		"chart.js": "^4.5.1",
 		"drizzle-orm": "^0.45.1",
 		"jose": "^6.2.1"
 	}
