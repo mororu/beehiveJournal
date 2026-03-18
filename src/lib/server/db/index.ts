@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as schema from './schema.js';
 
 // Fail fast if DATABASE_PATH is not configured.
@@ -33,6 +34,11 @@ sqlite.pragma('foreign_keys = ON');
 // The schema object maps table names to Drizzle table definitions,
 // enabling fully type-safe queries throughout the application.
 export const db = drizzle(sqlite, { schema });
+
+// Auto-migrate on startup.
+// Runs all pending migrations from the migrations folder.
+// Safe to run on every startup — idempotent (already-applied migrations are skipped).
+migrate(db, { migrationsFolder: 'src/lib/server/db/migrations' });
 
 // Export the raw sqlite connection for use cases that need it
 // (e.g., the create-user script running outside SvelteKit context).
