@@ -5,18 +5,112 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let isSubmitting = $state(false);
+	let archiveDialogOpen = $state(false);
+	let deleteDialogOpen = $state(false);
+	let confirmNameInput = $state('');
+
+	// Derived: enable delete button only when typed name matches exactly
+	const deleteEnabled = $derived(confirmNameInput === data.hive.name);
 </script>
 
 <svelte:head>
 	<title>Edit {data.hive.name} — beehiveJournal</title>
 </svelte:head>
 
+<!-- ── Archive confirmation dialog ─────────────────────────────────────── -->
+<dialog open={archiveDialogOpen || undefined} class="dialog" aria-labelledby="archive-dialog-title">
+	<h2 id="archive-dialog-title" class="dialog__title">Archive {data.hive.name}?</h2>
+	<p class="dialog__body">
+		It will be hidden from the active list but all inspection data will be kept. You can unarchive
+		it later.
+	</p>
+	<div class="dialog__actions">
+		<button class="btn btn--ghost" type="button" onclick={() => (archiveDialogOpen = false)}>
+			Cancel
+		</button>
+		<form method="POST" action="?/archive" use:enhance>
+			<button class="btn btn--warning" type="submit">Archive Hive</button>
+		</form>
+	</div>
+</dialog>
+
+<!-- ── Delete confirmation dialog ──────────────────────────────────────── -->
+<dialog open={deleteDialogOpen || undefined} class="dialog" aria-labelledby="delete-dialog-title">
+	<h2 id="delete-dialog-title" class="dialog__title">Delete {data.hive.name}?</h2>
+	<p class="dialog__body">
+		This will permanently delete <strong>{data.hive.name}</strong> and all
+		<strong>{data.inspectionCount}</strong>
+		{data.inspectionCount === 1 ? 'inspection' : 'inspections'} associated with it. This cannot be undone.
+	</p>
+	<p class="dialog__body">
+		Type <strong>{data.hive.name}</strong> to confirm:
+	</p>
+
+	{#if form?.action === 'delete' && form?.error}
+		<div class="field-error" role="alert">{form.error}</div>
+	{/if}
+
+	<form
+		method="POST"
+		action="?/delete"
+		use:enhance={() => {
+			return async ({ update }) => {
+				await update();
+				// Reset on failure (redirect on success means this only runs on error)
+				confirmNameInput = '';
+			};
+		}}
+	>
+		<input
+			class="field-input"
+			type="text"
+			name="confirmName"
+			bind:value={confirmNameInput}
+			placeholder={data.hive.name}
+			autocomplete="off"
+			autocorrect="off"
+			autocapitalize="off"
+			spellcheck="false"
+		/>
+		<div class="dialog__actions">
+			<button
+				class="btn btn--ghost"
+				type="button"
+				onclick={() => {
+					deleteDialogOpen = false;
+					confirmNameInput = '';
+				}}
+			>
+				Cancel
+			</button>
+			<button class="btn btn--danger" type="submit" disabled={!deleteEnabled}>
+				Permanently Delete
+			</button>
+		</div>
+	</form>
+</dialog>
+
+<!-- ── Main page ────────────────────────────────────────────────────────── -->
 <div class="form-page">
 	<div class="form-page__header">
 		<a href="/hives/{data.hive.id}" class="back-link">← {data.hive.name}</a>
 		<h1>Edit Hive</h1>
 	</div>
 
+	<!-- ── Unarchive banner (shown only for archived hives) ───────────────── -->
+	{#if !data.hive.isActive}
+		<div class="archived-banner">
+			<span>This hive is archived.</span>
+			{#if form?.action === 'unarchive' && form?.error}
+				<span class="archived-banner__error">{form.error}</span>
+			{/if}
+			<form method="POST" action="?/unarchive" use:enhance>
+				<button class="btn btn--sm btn--primary" type="submit">Unarchive</button>
+			</form>
+		</div>
+	{/if}
+
+	<!-- ── Edit form ─────────────────────────────────────────────────────── -->
 	<form
 		method="POST"
 		action="?/update"
@@ -28,7 +122,7 @@
 			};
 		}}
 	>
-		{#if form?.error}
+		{#if form?.action === 'update' && form?.error}
 			<div class="field-error field-error--top" role="alert">{form.error}</div>
 		{/if}
 
@@ -41,7 +135,7 @@
 				type="text"
 				id="name"
 				name="name"
-				value={form?.name ?? data.hive.name}
+				value={form?.action === 'update' ? (form?.name ?? data.hive.name) : data.hive.name}
 				required
 				disabled={isSubmitting}
 				autocomplete="off"
@@ -57,7 +151,11 @@
 				type="number"
 				id="number"
 				name="number"
-				value={form?.numberRaw ?? (data.hive.number != null ? String(data.hive.number) : '')}
+				value={form?.action === 'update'
+					? (form?.numberRaw ?? (data.hive.number != null ? String(data.hive.number) : ''))
+					: data.hive.number != null
+						? String(data.hive.number)
+						: ''}
 				min="1"
 				step="1"
 				disabled={isSubmitting}
@@ -73,7 +171,10 @@
 				id="description"
 				name="description"
 				rows="3"
-				disabled={isSubmitting}>{form?.description ?? data.hive.description ?? ''}</textarea
+				disabled={isSubmitting}
+				>{form?.action === 'update'
+					? (form?.description ?? data.hive.description ?? '')
+					: (data.hive.description ?? '')}</textarea
 			>
 		</div>
 
@@ -84,9 +185,94 @@
 			</button>
 		</div>
 	</form>
+
+	<!-- ── Danger zone ─────────────────────────────────────────────────── -->
+	<div class="danger-zone">
+		<h2 class="danger-zone__title">Danger Zone</h2>
+
+		{#if data.hive.isActive}
+			<div class="danger-zone__item">
+				<div class="danger-zone__info">
+					<strong>Archive this hive</strong>
+					<span>Hide from the active list. All inspections are kept.</span>
+				</div>
+				<button
+					class="btn btn--sm btn--warning"
+					type="button"
+					onclick={() => (archiveDialogOpen = true)}
+				>
+					Archive
+				</button>
+			</div>
+		{/if}
+
+		<div class="danger-zone__item">
+			<div class="danger-zone__info">
+				<strong>Delete this hive</strong>
+				<span>
+					Permanently delete this hive and all {data.inspectionCount}
+					{data.inspectionCount === 1 ? 'inspection' : 'inspections'}. Cannot be undone.
+				</span>
+			</div>
+			<button
+				class="btn btn--sm btn--danger"
+				type="button"
+				onclick={() => (deleteDialogOpen = true)}
+			>
+				Delete
+			</button>
+		</div>
+	</div>
 </div>
 
 <style>
+	/* ── Dialog ── */
+	.dialog {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		margin: auto;
+		width: calc(100% - 2rem);
+		max-width: 420px;
+		max-height: calc(100dvh - 2rem);
+		background: var(--color-surface, #ffffff);
+		border: none;
+		border-radius: 12px;
+		padding: 1.5rem;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+		overflow-y: auto;
+	}
+
+	.dialog::backdrop {
+		background: rgba(0, 0, 0, 0.4);
+	}
+
+	.dialog__title {
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: var(--color-text, #1a1a1a);
+		margin: 0 0 0.75rem;
+	}
+
+	.dialog__body {
+		font-size: 0.9rem;
+		color: var(--color-text-muted, #6b7280);
+		margin: 0 0 0.75rem;
+		line-height: 1.5;
+	}
+
+	.dialog__body strong {
+		color: var(--color-text, #1a1a1a);
+	}
+
+	.dialog__actions {
+		display: flex;
+		gap: 0.75rem;
+		justify-content: flex-end;
+		margin-top: 1.25rem;
+	}
+
+	/* ── Form page ── */
 	.form-page {
 		max-width: 480px;
 		margin: 0 auto;
@@ -115,6 +301,31 @@
 		margin: 0;
 	}
 
+	/* ── Archived banner ── */
+	.archived-banner {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		background: #fffbeb;
+		border: 1px solid #fde68a;
+		border-radius: 8px;
+		padding: 0.75rem 1rem;
+		font-size: 0.875rem;
+		color: #92400e;
+		margin-bottom: 1.5rem;
+	}
+
+	.archived-banner span:first-child {
+		flex: 1;
+	}
+
+	.archived-banner__error {
+		color: #dc2626;
+		font-weight: 500;
+	}
+
+	/* ── Fields ── */
 	.field {
 		margin-bottom: 1.25rem;
 	}
@@ -159,11 +370,6 @@
 		box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
 	}
 
-	.field-input:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
 	.field-input--short {
 		max-width: 120px;
 	}
@@ -174,16 +380,21 @@
 		resize: vertical;
 	}
 
-	.field-error--top {
+	.field-error {
 		background-color: #fef2f2;
 		color: #dc2626;
 		border: 1px solid #fecaca;
 		border-radius: 8px;
 		padding: 0.75rem 1rem;
-		font-size: 0.9rem;
+		font-size: 0.875rem;
+		margin-bottom: 0.75rem;
+	}
+
+	.field-error--top {
 		margin-bottom: 1.25rem;
 	}
 
+	/* ── Form actions ── */
 	.form-actions {
 		display: flex;
 		gap: 0.75rem;
@@ -191,6 +402,50 @@
 		margin-top: 1.5rem;
 	}
 
+	/* ── Danger zone ── */
+	.danger-zone {
+		margin-top: 2.5rem;
+		border-top: 1px solid var(--color-border, #e5e7eb);
+		padding-top: 1.5rem;
+	}
+
+	.danger-zone__title {
+		font-size: 0.85rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: #dc2626;
+		margin: 0 0 1rem;
+	}
+
+	.danger-zone__item {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.875rem;
+		border: 1px solid var(--color-border, #e5e7eb);
+		border-radius: 8px;
+		margin-bottom: 0.75rem;
+	}
+
+	.danger-zone__info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.danger-zone__info strong {
+		font-size: 0.9rem;
+		color: var(--color-text, #1a1a1a);
+	}
+
+	.danger-zone__info span {
+		font-size: 0.8rem;
+		color: var(--color-text-muted, #6b7280);
+	}
+
+	/* ── Buttons ── */
 	.btn {
 		display: inline-flex;
 		align-items: center;
@@ -203,8 +458,17 @@
 		text-decoration: none;
 		cursor: pointer;
 		border: none;
-		transition: background-color 0.15s ease;
+		transition:
+			background-color 0.15s ease,
+			opacity 0.15s ease;
 		font-family: inherit;
+		white-space: nowrap;
+	}
+
+	.btn--sm {
+		height: 38px;
+		padding: 0 0.875rem;
+		font-size: 0.875rem;
 	}
 
 	.btn--primary {
@@ -229,5 +493,28 @@
 
 	.btn--ghost:hover {
 		background-color: var(--color-hover, #f3f4f6);
+	}
+
+	.btn--warning {
+		background-color: #d97706;
+		color: #ffffff;
+	}
+
+	.btn--warning:hover {
+		background-color: #b45309;
+	}
+
+	.btn--danger {
+		background-color: #dc2626;
+		color: #ffffff;
+	}
+
+	.btn--danger:hover:not(:disabled) {
+		background-color: #b91c1c;
+	}
+
+	.btn--danger:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
 	}
 </style>
