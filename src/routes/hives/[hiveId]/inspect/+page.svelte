@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { toDatetimeLocal } from '$lib/client/utils/date.js';
+	import { isOnline } from '$lib/client/stores/offline.js';
+	import { addToOutbox } from '$lib/client/offline/db.js';
+	import { pendingSync } from '$lib/client/stores/pendingSync.js';
+	import { fromDatetimeLocal, toDatetimeLocal } from '$lib/client/utils/date.js';
 	import type { ActionData, PageData } from './$types.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -9,7 +12,13 @@
 	let healthScore = $state<number | null>(null);
 	let queenStatus = $state<string | null>(null);
 	let isSubmitting = $state(false);
-	let touched = $state(false); // track whether user attempted submit
+	let touched = $state(false);
+	// Story 7.4 AC4: shown after a successful offline save
+	let offlineSaved = $state(false);
+
+	// Stable clientId for this form instance — same UUID used whether we go
+	// online (server form action) or offline (IDB outbox). Prevents duplicates.
+	const clientId = crypto.randomUUID();
 
 	// ── Default inspection date/time = now, formatted for datetime-local input ──
 	const defaultDatetime = toDatetimeLocal(Math.floor(Date.now() / 1000));
@@ -114,12 +123,57 @@
 
 	<form
 		method="POST"
-		use:enhance={() => {
+		use:enhance={(event) => {
 			touched = true;
+
+			// Client-side validation
 			if (healthScore === null || queenStatus === null) {
-				// Block submission — validation handled in template
-				return () => {}; // cancel by not calling update
+				return () => {}; // cancel — validation errors shown in template
 			}
+
+			// Story 7.4 AC2: if offline, intercept and save to IDB instead
+			if (!$isOnline) {
+				event.cancel(); // prevent the fetch to the server action
+				isSubmitting = true;
+
+				const formData = new FormData(event.formElement);
+				const inspectedAtRaw = (formData.get('inspectedAt') as string | null)?.trim() ?? '';
+				const inspectedAt = inspectedAtRaw
+					? fromDatetimeLocal(inspectedAtRaw)
+					: Math.floor(Date.now() / 1000);
+
+				addToOutbox({
+					clientId,
+					hiveId: data.hive.id,
+					inspectedAt,
+					healthScore: healthScore!,
+					queenStatus: queenStatus!,
+					behaviourNotes: (formData.get('behaviourNotes') as string | null)?.trim() || null,
+					nextInspectNote: (formData.get('nextInspectNote') as string | null)?.trim() || null,
+					// Story 7.4 AC5: weather is unavailable when offline
+					weatherTemp: null,
+					weatherDesc: null,
+					weatherWindSpeed: null,
+					weatherCode: null,
+					weatherLat: null,
+					weatherLon: null,
+					weatherUnavailable: true,
+					syncStatus: 'pending',
+					createdAt: Math.floor(Date.now() / 1000),
+				})
+					.then(async () => {
+						await pendingSync.refresh();
+						isSubmitting = false;
+						offlineSaved = true;
+					})
+					.catch(() => {
+						isSubmitting = false;
+					});
+
+				return () => {}; // no-op update — we handled it ourselves
+			}
+
+			// Online path: normal server form action
 			isSubmitting = true;
 			return async ({ update }) => {
 				await update();
@@ -133,6 +187,14 @@
 			}
 		}}
 	>
+		<!-- Story 7.4 AC4: offline save confirmation -->
+		{#if offlineSaved}
+			<div class="form-offline-saved" role="status">
+				Saved offline — will sync when you reconnect.
+				<a href="/hives/{data.hive.id}" class="offline-saved__link">← Back to hive</a>
+			</div>
+		{/if}
+
 		<!-- Server-side error -->
 		{#if form?.error}
 			<div class="form-error" role="alert">{form.error}</div>
@@ -267,8 +329,8 @@
 			{/if}
 		</div>
 
-		<!-- Client-side UUID for offline dedup (Sprint 9) -->
-		<input type="hidden" name="clientId" value={crypto.randomUUID()} />
+		<!-- Stable UUID for this form instance — used for server dedup and IDB keying -->
+		<input type="hidden" name="clientId" value={clientId} />
 
 		<!-- ── Submit ──────────────────────────────────────────────────────── -->
 		<div class="form-actions">
@@ -312,6 +374,29 @@
 		font-weight: 700;
 		color: var(--color-text, #1a1a1a);
 		margin: 0;
+	}
+
+	.form-offline-saved {
+		background: #ecfdf5;
+		color: #065f46;
+		border: 1px solid #a7f3d0;
+		border-radius: 8px;
+		padding: 0.875rem 1rem;
+		font-size: 0.9rem;
+		font-weight: 500;
+		margin-bottom: 1.25rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.offline-saved__link {
+		font-size: 0.875rem;
+		color: #065f46;
+		font-weight: 600;
+		text-decoration: underline;
 	}
 
 	.form-error {

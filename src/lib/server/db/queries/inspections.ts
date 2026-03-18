@@ -39,6 +39,16 @@ export function getInspectionById(id: number): Inspection | null {
 }
 
 /**
+ * Returns an inspection by its clientId (UUID), or null if not found.
+ * Used for server-side deduplication — if a clientId has already been persisted,
+ * return the existing record instead of creating a duplicate.
+ */
+export function getInspectionByClientId(clientId: string): Inspection | null {
+	const row = db.select().from(inspections).where(eq(inspections.clientId, clientId)).get();
+	return row ?? null;
+}
+
+/**
  * Returns the count of inspections for a hive.
  * Used in the delete-hive confirmation message.
  */

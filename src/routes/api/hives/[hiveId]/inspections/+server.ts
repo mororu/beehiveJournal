@@ -1,10 +1,14 @@
 // src/routes/api/hives/[hiveId]/inspections/+server.ts
 // GET  /api/hives/:id/inspections  — list inspections for a hive
-// POST /api/hives/:id/inspections  — create a new inspection
+// POST /api/hives/:id/inspections  — create a new inspection (idempotent via clientId)
 
 import { json, error } from '@sveltejs/kit';
 import { getHiveById } from '$lib/server/db/queries/hives.js';
-import { getInspectionsByHiveId, createInspection } from '$lib/server/db/queries/inspections.js';
+import {
+	getInspectionsByHiveId,
+	getInspectionByClientId,
+	createInspection,
+} from '$lib/server/db/queries/inspections.js';
 import type { RequestHandler } from './$types.js';
 
 const VALID_QUEEN_STATUSES = ['seen', 'not_seen', 'cells_present'] as const;
@@ -40,6 +44,17 @@ export const POST: RequestHandler = async ({ params, request }) => {
 
 	const b = body as Record<string, unknown>;
 
+	// Story 7.5 AC5: clientId deduplication — if we've seen this UUID before,
+	// return the existing record rather than creating a duplicate.
+	const clientId = typeof b.clientId === 'string' ? b.clientId || null : null;
+	if (clientId) {
+		const existing = getInspectionByClientId(clientId);
+		if (existing) {
+			// Return 200 (not 201) — entry already exists, sync client can treat this as success
+			return json(existing, { status: 200 });
+		}
+	}
+
 	// Validate required fields
 	const healthScore = Number(b.healthScore);
 	if (!Number.isInteger(healthScore) || healthScore < 1 || healthScore > 5) {
@@ -68,7 +83,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		weatherLat: b.weatherLat != null ? Number(b.weatherLat) : null,
 		weatherLon: b.weatherLon != null ? Number(b.weatherLon) : null,
 		weatherUnavailable: b.weatherUnavailable === true,
-		clientId: typeof b.clientId === 'string' ? b.clientId || null : null,
+		clientId,
 	});
 
 	return json(inspection, { status: 201 });

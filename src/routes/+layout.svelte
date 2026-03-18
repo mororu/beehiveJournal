@@ -1,10 +1,18 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import favicon from '$lib/assets/favicon.svg';
 	import OfflineBanner from '$lib/components/OfflineBanner.svelte';
+	import PendingSyncBadge from '$lib/components/PendingSyncBadge.svelte';
+	import { registerSyncTriggers } from '$lib/client/offline/sync.js';
 	import type { LayoutData } from './$types.js';
 
 	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
+
+	// Story 7.5: register online + visibilitychange sync triggers once on mount
+	onMount(() => {
+		registerSyncTriggers();
+	});
 </script>
 
 <svelte:head>
@@ -16,6 +24,8 @@
 		<div class="nav-links">
 			<a href="/hives" class="nav-link">Hives</a>
 			<a href="/stings" class="nav-link">Stings</a>
+			<!-- Story 7.4 AC6: shows count of pending offline entries -->
+			<PendingSyncBadge />
 		</div>
 		<div class="nav-right">
 			<span class="nav-username">{data.user.username}</span>

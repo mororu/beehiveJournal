@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 // ─── Users ───────────────────────────────────────────────────────────────────
 // Single row — single-user app. Created by setup script at deploy time.
@@ -26,46 +26,54 @@ export const hives = sqliteTable('hives', {
 // ─── Inspections ─────────────────────────────────────────────────────────────
 // A single inspection visit log for a hive. Core data entry record.
 // Weather fields are all nullable — a failed weather fetch is not a failed inspection.
-export const inspections = sqliteTable('inspections', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
-	hiveId: integer('hive_id')
-		.notNull()
-		.references(() => hives.id, { onDelete: 'cascade' }),
-	inspectedAt: integer('inspected_at').notNull(), // Unix epoch; defaults to creation time on client
-	healthScore: integer('health_score').notNull(), // 1–5 integer scale
-	queenStatus: text('queen_status').notNull(), // 'seen' | 'not_seen' | 'cells_present'
-	behaviourNotes: text('behaviour_notes'), // free text; nullable; max 2000 chars enforced in app layer
-	nextInspectNote: text('next_inspect_note'), // reminder for next visit; nullable; max 1000 chars
+export const inspections = sqliteTable(
+	'inspections',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		hiveId: integer('hive_id')
+			.notNull()
+			.references(() => hives.id, { onDelete: 'cascade' }),
+		inspectedAt: integer('inspected_at').notNull(), // Unix epoch; defaults to creation time on client
+		healthScore: integer('health_score').notNull(), // 1–5 integer scale
+		queenStatus: text('queen_status').notNull(), // 'seen' | 'not_seen' | 'cells_present'
+		behaviourNotes: text('behaviour_notes'), // free text; nullable; max 2000 chars enforced in app layer
+		nextInspectNote: text('next_inspect_note'), // reminder for next visit; nullable; max 1000 chars
 
-	// Weather snapshot — all nullable; captured client-side via GPS + Open-Meteo at form open time
-	weatherTemp: real('weather_temp'), // °C from Open-Meteo
-	weatherDesc: text('weather_desc'), // e.g. "Partly cloudy" (from WMO code mapping)
-	weatherWindSpeed: real('weather_wind_speed'), // km/h from Open-Meteo
-	weatherCode: integer('weather_code'), // WMO weather code from Open-Meteo API
-	weatherLat: real('weather_lat'), // GPS latitude used for the weather fetch
-	weatherLon: real('weather_lon'), // GPS longitude used for the weather fetch
-	weatherUnavailable: integer('weather_unavailable', { mode: 'boolean' }).default(false),
+		// Weather snapshot — all nullable; captured client-side via GPS + Open-Meteo at form open time
+		weatherTemp: real('weather_temp'), // °C from Open-Meteo
+		weatherDesc: text('weather_desc'), // e.g. "Partly cloudy" (from WMO code mapping)
+		weatherWindSpeed: real('weather_wind_speed'), // km/h from Open-Meteo
+		weatherCode: integer('weather_code'), // WMO weather code from Open-Meteo API
+		weatherLat: real('weather_lat'), // GPS latitude used for the weather fetch
+		weatherLon: real('weather_lon'), // GPS longitude used for the weather fetch
+		weatherUnavailable: integer('weather_unavailable', { mode: 'boolean' }).default(false),
 
-	// Offline sync deduplication — UUID generated on client at entry creation time
-	clientId: text('client_id'), // UUID v4; unique index prevents duplicate syncs
+		// Offline sync deduplication — UUID generated on client at entry creation time
+		clientId: text('client_id'), // UUID v4; unique index prevents duplicate syncs
 
-	createdAt: integer('created_at').notNull(), // Unix epoch
-	updatedAt: integer('updated_at').notNull(), // Unix epoch
-});
+		createdAt: integer('created_at').notNull(), // Unix epoch
+		updatedAt: integer('updated_at').notNull(), // Unix epoch
+	},
+	(t) => [uniqueIndex('inspections_client_id_unique').on(t.clientId)]
+);
 
 // ─── Sting Incidents ─────────────────────────────────────────────────────────
 // Log of times Manuel was stung. Optionally linked to a hive.
 // hive_id is nullable (set null on delete) — sting records survive hive deletion.
-export const stingIncidents = sqliteTable('sting_incidents', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
-	hiveId: integer('hive_id').references(() => hives.id, { onDelete: 'set null' }),
-	stungAt: integer('stung_at').notNull(), // Unix epoch
-	bodyLocation: text('body_location').notNull(), // e.g. "Left forearm", "Right hand"
-	notes: text('notes'), // optional free text
-	clientId: text('client_id'), // UUID v4 for offline dedup; nullable
+export const stingIncidents = sqliteTable(
+	'sting_incidents',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		hiveId: integer('hive_id').references(() => hives.id, { onDelete: 'set null' }),
+		stungAt: integer('stung_at').notNull(), // Unix epoch
+		bodyLocation: text('body_location').notNull(), // e.g. "Left forearm", "Right hand"
+		notes: text('notes'), // optional free text
+		clientId: text('client_id'), // UUID v4 for offline dedup; nullable
 
-	createdAt: integer('created_at').notNull(), // Unix epoch
-});
+		createdAt: integer('created_at').notNull(), // Unix epoch
+	},
+	(t) => [uniqueIndex('sting_incidents_client_id_unique').on(t.clientId)]
+);
 
 // ─── Inferred Types ──────────────────────────────────────────────────────────
 // Export inferred TypeScript types for use throughout the app.
