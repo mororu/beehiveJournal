@@ -47,6 +47,10 @@ COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/package-lock.json ./package-lock.json
 
+# Copy Drizzle migrations — required by migrate() at server startup.
+# The migrations folder is NOT compiled into build/; it must be present at runtime.
+COPY --from=builder /app/src/lib/server/db/migrations ./src/lib/server/db/migrations
+
 # Copy the compiled create-user script for docker exec use (if it was compiled)
 RUN mkdir -p scripts
 COPY --from=builder /app/scripts/ ./scripts/

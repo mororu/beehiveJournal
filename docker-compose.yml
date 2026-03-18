@@ -1,4 +1,19 @@
+# docker-compose.yml
+# Production configuration for beehiveJournal.
+#
+# Three services:
+#   app     — SvelteKit Node.js server (internal network only, never exposed publicly)
+#   nginx   — Reverse proxy + TLS termination (ports 80 + 443)
+#   certbot — Let's Encrypt certificate issuance and renewal
+#
+# Usage:
+#   Initial certificate:  see docs/runbook.md §3
+#   Normal start:         docker compose up -d
+#   Update app:           git pull && docker compose build app && docker compose up -d app
+#   View logs:            docker logs -f beehivejournal-app
+
 services:
+  # ── App ──────────────────────────────────────────────────────────────────
   app:
     build:
       context: .
@@ -11,13 +26,14 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - PORT=3000
     volumes:
-      # Named volume for SQLite persistence.
-      # The database survives container recreation, image rebuilds, and restarts.
+      # Story 8.2 AC1: named volume at /data — database never inside image layer
       - app-data:/data
-    ports:
-      # Map container port 3000 to host port 3000 for local testing.
-      # In production (Sprint 10), Nginx proxies to this on the internal network only.
-      - '3000:3000'
+    # Story 8.1 AC4: NOT exposed on any public port.
+    # Nginx proxies to it via the internal Docker bridge network (app:3000).
+    expose:
+      - '3000'
+    networks:
+      - internal
     healthcheck:
       test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/']
       interval: 30s
@@ -25,11 +41,55 @@ services:
       retries: 3
       start_period: 15s
 
+  # ── Nginx ─────────────────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: beehivejournal-nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # Let's Encrypt certificates (shared with certbot)
+      - certbot-etc:/etc/letsencrypt:ro
+      # ACME webroot challenge directory (shared with certbot)
+      - certbot-www:/var/www/certbot:ro
+    networks:
+      - internal
+    depends_on:
+      - app
+
+  # ── Certbot ───────────────────────────────────────────────────────────────
+  # One-shot issuance:
+  #   docker compose run --rm certbot certonly --webroot \
+  #     -w /var/www/certbot -d journal.example.com \
+  #     --email you@example.com --agree-tos --no-eff-email
+  #
+  # Renewal (run from cron on the host — see docs/runbook.md §5):
+  #   docker compose run --rm certbot renew
+  certbot:
+    image: certbot/certbot:latest
+    container_name: beehivejournal-certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+
+# ── Volumes ──────────────────────────────────────────────────────────────────
 volumes:
-  # Named volume for the SQLite database file.
-  # Persists across: container restarts, `docker compose down`, image rebuilds.
-  # NOT persisted across: `docker compose down -v` (explicitly deletes volumes).
+  # Story 8.2 AC1-3: SQLite database — survives restarts, recreations, and rebuilds.
+  # Destroyed only by: docker compose down -v  (explicit volume removal).
   app-data:
     driver: local
+  # Let's Encrypt certificates and account data
+  certbot-etc:
+    driver: local
+  # ACME webroot challenge files served by Nginx at /.well-known/acme-challenge/
+  certbot-www:
+    driver: local
 
-# NOTE: The nginx and certbot services are added in Sprint 10 (Story 8.1).
+# ── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  internal:
+    driver: bridge
