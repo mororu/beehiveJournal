@@ -1,17 +1,21 @@
 // src/routes/hives/[hiveId]/+page.server.ts
-// Hive detail page — Sprint 6 fills in inspection history + chart.
-// For now: load the hive, verify it exists, return basic data.
 
 import { error } from '@sveltejs/kit';
 import { getHiveById } from '$lib/server/db/queries/hives.js';
+import { getInspectionsByHiveId } from '$lib/server/db/queries/inspections.js';
 import type { PageServerLoad } from './$types.js';
 
-export const load: PageServerLoad = ({ params }) => {
+export const load: PageServerLoad = ({ params, url }) => {
 	const id = parseInt(params.hiveId, 10);
 	if (isNaN(id)) error(404, 'Hive not found');
 
 	const hive = getHiveById(id);
 	if (!hive) error(404, 'Hive not found');
 
-	return { hive };
+	const inspections = getInspectionsByHiveId(id);
+
+	// ?saved=1 is appended by the inspect form redirect on success (Story 4.5 toast)
+	const justSaved = url.searchParams.get('saved') === '1';
+
+	return { hive, inspections, justSaved };
 };

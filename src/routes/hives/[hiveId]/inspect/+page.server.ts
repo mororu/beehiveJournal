@@ -63,7 +63,7 @@ export const actions: Actions = {
 		const weatherLatRaw = data.get('weatherLat') as string | null;
 		const weatherLonRaw = data.get('weatherLon') as string | null;
 
-		const inspection = createInspection({
+		createInspection({
 			hiveId,
 			inspectedAt,
 			healthScore,
@@ -80,8 +80,7 @@ export const actions: Actions = {
 			clientId: (data.get('clientId') as string | null) || null,
 		});
 
-		redirect(302, `/hives/${hiveId}`);
-		// satisfy TS — redirect always throws
-		return { inspectionId: inspection.id };
+		// ?saved=1 triggers the success toast on the hive detail page (Story 4.5)
+		redirect(302, `/hives/${hiveId}?saved=1`);
 	},
 };
