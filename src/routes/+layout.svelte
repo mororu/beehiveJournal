@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import favicon from '$lib/assets/favicon.svg';
+	import OfflineBanner from '$lib/components/OfflineBanner.svelte';
 	import type { LayoutData } from './$types.js';
 
 	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
@@ -24,6 +25,9 @@
 		</div>
 	</nav>
 {/if}
+
+<!-- Story 7.3: sticky offline banner shown on all pages when no connectivity -->
+<OfflineBanner />
 
 <main>
 	{@render children()}

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#fefce8"/>
+
+  <!-- Honeycomb hexagons — amber theme -->
+  <!-- Centre hex -->
+  <polygon points="256,168 312,200 312,264 256,296 200,264 200,200"
+           fill="#f59e0b" stroke="#d97706" stroke-width="6"/>
+
+  <!-- Top hex -->
+  <polygon points="256,72 312,104 312,168 256,200 200,168 200,104"
+           fill="#fbbf24" stroke="#d97706" stroke-width="6"/>
+
+  <!-- Bottom hex -->
+  <polygon points="256,296 312,328 312,392 256,424 200,392 200,328"
+           fill="#fbbf24" stroke="#d97706" stroke-width="6"/>
+
+  <!-- Top-left hex -->
+  <polygon points="145,120 201,152 201,216 145,248 89,216 89,152"
+           fill="#fcd34d" stroke="#d97706" stroke-width="6"/>
+
+  <!-- Top-right hex -->
+  <polygon points="367,120 423,152 423,216 367,248 311,216 311,152"
+           fill="#fcd34d" stroke="#d97706" stroke-width="6"/>
+
+  <!-- Bottom-left hex -->
+  <polygon points="145,248 201,280 201,344 145,376 89,344 89,280"
+           fill="#fcd34d" stroke="#d97706" stroke-width="6"/>
+
+  <!-- Bottom-right hex -->
+  <polygon points="367,248 423,280 423,344 367,376 311,344 311,280"
+           fill="#fcd34d" stroke="#d97706" stroke-width="6"/>
+
+  <!-- Bee body (simple oval) -->
+  <ellipse cx="256" cy="232" rx="28" ry="40" fill="#1c1917" opacity="0.85"/>
+  <!-- Bee stripes -->
+  <rect x="228" y="218" width="56" height="10" rx="4" fill="#f59e0b" opacity="0.9"/>
+  <rect x="228" y="236" width="56" height="10" rx="4" fill="#f59e0b" opacity="0.9"/>
+  <!-- Bee wings -->
+  <ellipse cx="228" cy="210" rx="24" ry="12" fill="white" opacity="0.7" transform="rotate(-20 228 210)"/>
+  <ellipse cx="284" cy="210" rx="24" ry="12" fill="white" opacity="0.7" transform="rotate(20 284 210)"/>
+</svg>

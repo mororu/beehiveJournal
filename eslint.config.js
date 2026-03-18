@@ -9,13 +9,28 @@ import globals from 'globals';
 export default [
 	js.configs.recommended,
 	{
-		// All TypeScript files (server + scripts) run in Node.js
+		// TypeScript files that are server-side / scripts — Node.js globals
 		files: ['**/*.ts'],
+		ignores: ['src/lib/client/**/*.ts'],
 		plugins: { '@typescript-eslint': ts },
 		languageOptions: {
 			parser: tsParser,
 			globals: {
 				...globals.node,
+			},
+		},
+		rules: {
+			...ts.configs.recommended.rules,
+		},
+	},
+	{
+		// Client-side TypeScript files — browser globals
+		files: ['src/lib/client/**/*.ts'],
+		plugins: { '@typescript-eslint': ts },
+		languageOptions: {
+			parser: tsParser,
+			globals: {
+				...globals.browser,
 			},
 		},
 		rules: {
