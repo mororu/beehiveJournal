@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { toDatetimeLocal } from '$lib/client/utils/date.js';
+	import BodyMap from '$lib/components/BodyMap.svelte';
 	import type { ActionData, PageData } from './$types.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let isSubmitting = $state(false);
+	let bodyLocation = $state(form?.bodyLocation ?? '');
 
 	const defaultDatetime = toDatetimeLocal(Math.floor(Date.now() / 1000));
 </script>
@@ -52,20 +54,14 @@
 
 		<!-- Body Location -->
 		<div class="field">
-			<label class="field-label" for="bodyLocation">
+			<span class="field-label">
 				Body Location <span class="required" aria-hidden="true">*</span>
-			</label>
-			<input
-				class="field-input"
-				type="text"
-				id="bodyLocation"
-				name="bodyLocation"
-				value={form?.bodyLocation ?? ''}
-				placeholder="e.g. Left forearm, Right hand"
-				required
-				disabled={isSubmitting}
-				autocomplete="off"
-			/>
+			</span>
+			<BodyMap bind:value={bodyLocation} />
+			<input type="hidden" name="bodyLocation" value={bodyLocation} />
+			{#if form?.error === 'Body location is required' && !bodyLocation}
+				<p class="field-error">Please select a location on the body map.</p>
+			{/if}
 		</div>
 
 		<!-- Hive (optional) -->
@@ -169,6 +165,12 @@
 
 	.field {
 		margin-bottom: 1.25rem;
+	}
+
+	.field-error {
+		margin: 0.375rem 0 0;
+		font-size: 0.8rem;
+		color: #dc2626;
 	}
 
 	.field-label {

@@ -1,9 +1,14 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
-	plugins: [
+export default defineConfig(({ mode }) => {
+	// Inject .env.local vars into process.env so server-side code (e.g. db/index.ts)
+	// can access them via process.env at SSR runtime in dev mode.
+	const env = loadEnv(mode, process.cwd(), '');
+	Object.assign(process.env, env);
+
+	return { plugins: [
 		sveltekit(),
 		VitePWA({
 			// Story 7.2: Service worker registers and updates automatically
@@ -51,5 +56,5 @@ export default defineConfig({
 				type: 'module',
 			},
 		}),
-	],
+	] };
 });
