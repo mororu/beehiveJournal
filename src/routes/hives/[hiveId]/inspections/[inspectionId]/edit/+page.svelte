@@ -15,15 +15,15 @@
 </script>
 
 <svelte:head>
-	<title>Edit Inspection — {data.hive.name}</title>
+	<title>Kontrolle bearbeiten — {data.hive.name}</title>
 </svelte:head>
 
 <div class="form-page">
 	<div class="form-page__header">
 		<a href="/hives/{data.hive.id}/inspections/{data.inspection.id}" class="back-link"
-			>← Inspection</a
+			>← Kontrolle</a
 		>
-		<h1>Edit Inspection</h1>
+		<h1>Kontrolle bearbeiten</h1>
 	</div>
 
 	<form
@@ -48,10 +48,10 @@
 		<!-- ── Health Score ── -->
 		<div class="field">
 			<span class="field-label">
-				Health Score <span class="required" aria-hidden="true">*</span>
+				Gesundheitsbewertung <span class="required" aria-hidden="true">*</span>
 			</span>
 			{#if touched && !healthScore}
-				<span class="inline-error" role="alert">Select a health score</span>
+				<span class="inline-error" role="alert">Bitte Gesundheitsbewertung auswählen</span>
 			{/if}
 			<div class="score-row" role="group" aria-label="Health score 1 to 5">
 				{#each [1, 2, 3, 4, 5] as score (score)}
@@ -76,13 +76,13 @@
 		<!-- ── Queen Status ── -->
 		<div class="field">
 			<span class="field-label">
-				Queen Status <span class="required" aria-hidden="true">*</span>
+				Königinnenstatus <span class="required" aria-hidden="true">*</span>
 			</span>
 			{#if touched && !queenStatus}
-				<span class="inline-error" role="alert">Select a queen status</span>
+				<span class="inline-error" role="alert">Bitte Königinnenstatus auswählen</span>
 			{/if}
 			<div class="queen-row" role="group" aria-label="Queen status">
-				{#each [{ value: 'seen', label: 'Seen' }, { value: 'not_seen', label: 'Not Seen' }, { value: 'cells_present', label: 'Cells Present' }] as opt (opt.value)}
+				{#each [{ value: 'seen', label: 'Gesehen' }, { value: 'not_seen', label: 'Nicht gesehen' }, { value: 'cells_present', label: 'Zellen vorhanden' }] as opt (opt.value)}
 					<button
 						class="queen-btn"
 						class:queen-btn--selected={queenStatus === opt.value}
@@ -99,7 +99,7 @@
 
 		<!-- ── Date/Time ── -->
 		<div class="field">
-			<label class="field-label" for="inspectedAt">Date & Time</label>
+			<label class="field-label" for="inspectedAt">Datum & Uhrzeit</label>
 			<input
 				class="field-input"
 				type="datetime-local"
@@ -113,7 +113,7 @@
 		<!-- ── Behaviour Notes ── -->
 		<div class="field">
 			<label class="field-label" for="behaviourNotes">
-				Behaviour Notes <span class="field-hint">(optional)</span>
+				Verhaltensnotizen <span class="field-hint">(optional)</span>
 			</label>
 			<textarea
 				class="field-input field-input--textarea"
@@ -128,7 +128,7 @@
 		<!-- ── Next Inspection Note ── -->
 		<div class="field">
 			<label class="field-label" for="nextInspectNote">
-				Next Inspection Note <span class="field-hint">(optional)</span>
+				Notiz nächste Kontrolle <span class="field-hint">(optional)</span>
 			</label>
 			<textarea
 				class="field-input field-input--textarea"
@@ -143,7 +143,7 @@
 		<!-- ── Weather (read-only) ── -->
 		{#if !data.inspection.weatherUnavailable && data.inspection.weatherTemp != null}
 			<div class="weather-readonly">
-				<span class="weather-readonly__label">Weather (captured at creation)</span>
+				<span class="weather-readonly__label">Wetter (bei Erstellung erfasst)</span>
 				<div class="weather-readonly__data">
 					<span>{data.inspection.weatherTemp}°C</span>
 					{#if data.inspection.weatherDesc}<span>{data.inspection.weatherDesc}</span>{/if}
@@ -156,10 +156,10 @@
 
 		<div class="form-actions">
 			<a href="/hives/{data.hive.id}/inspections/{data.inspection.id}" class="btn btn--ghost"
-				>Cancel</a
+				>Abbrechen</a
 			>
 			<button class="btn btn--primary" type="submit" disabled={isSubmitting}>
-				{isSubmitting ? 'Saving…' : 'Save Changes'}
+				{isSubmitting ? 'Speichern…' : 'Änderungen speichern'}
 			</button>
 		</div>
 	</form>

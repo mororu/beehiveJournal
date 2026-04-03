@@ -4,7 +4,7 @@
 
 {#if !$isOnline}
 	<div class="offline-banner" role="status" aria-live="polite">
-		You are offline — new entries will sync when you reconnect
+		Sie sind offline — neue Einträge werden synchronisiert, sobald Sie wieder verbunden sind
 	</div>
 {/if}
 

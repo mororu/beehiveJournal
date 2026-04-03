@@ -8,9 +8,9 @@
 
 	// ── Queen status display ──────────────────────────────────────────────────
 	const queenLabels: Record<string, string> = {
-		seen: 'Seen',
-		not_seen: 'Not Seen',
-		cells_present: 'Cells Present',
+		seen: 'Gesehen',
+		not_seen: 'Nicht gesehen',
+		cells_present: 'Zellen vorhanden',
 	};
 
 	// ── Delete dialog ─────────────────────────────────────────────────────────
@@ -24,13 +24,13 @@
 
 <!-- Delete confirmation dialog -->
 <dialog open={deleteDialogOpen || undefined} class="dialog" aria-labelledby="delete-title">
-	<h2 id="delete-title" class="dialog__title">Delete this inspection?</h2>
+	<h2 id="delete-title" class="dialog__title">Diese Kontrolle löschen?</h2>
 	<p class="dialog__body">
-		This inspection entry will be permanently removed. This cannot be undone.
+		Dieser Kontrolleeintrag wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.
 	</p>
 	<div class="dialog__actions">
 		<button class="btn btn--ghost" type="button" onclick={() => (deleteDialogOpen = false)}>
-			Cancel
+			Abbrechen
 		</button>
 		<form
 			method="POST"
@@ -44,7 +44,7 @@
 			}}
 		>
 			<button class="btn btn--danger" type="submit" disabled={isDeleting}>
-				{isDeleting ? 'Deleting…' : 'Delete'}
+				{isDeleting ? 'Löschen…' : 'Löschen'}
 			</button>
 		</form>
 	</div>
@@ -61,14 +61,14 @@
 					href="/hives/{data.hive.id}/inspections/{data.inspection.id}/edit"
 					class="btn btn--ghost btn--sm"
 				>
-					Edit
+					Bearbeiten
 				</a>
 				<button
 					class="btn btn--ghost btn--sm btn--delete-trigger"
 					type="button"
 					onclick={() => (deleteDialogOpen = true)}
 				>
-					Delete
+					Löschen
 				</button>
 			</div>
 		</div>
@@ -77,25 +77,25 @@
 	<!-- Core fields -->
 	<div class="detail-card">
 		<div class="detail-row detail-row--prominent">
-			<span class="detail-label">Health Score</span>
+			<span class="detail-label">Gesundheitsbewertung</span>
 			<div class="detail-value detail-value--score">
 				<HealthBadge score={data.inspection.healthScore} />
 				<span class="score-word">
 					{data.inspection.healthScore === 1
-						? 'Critical'
+						? 'Kritisch'
 						: data.inspection.healthScore === 2
-							? 'Poor'
+							? 'Schlecht'
 							: data.inspection.healthScore === 3
-								? 'Fair'
+								? 'Mittel'
 								: data.inspection.healthScore === 4
-									? 'Good'
-									: 'Excellent'}
+									? 'Gut'
+									: 'Ausgezeichnet'}
 				</span>
 			</div>
 		</div>
 
 		<div class="detail-row">
-			<span class="detail-label">Queen Status</span>
+			<span class="detail-label">Königinnenstatus</span>
 			<span class="detail-value queen-status queen-status--{data.inspection.queenStatus}">
 				{queenLabels[data.inspection.queenStatus] ?? data.inspection.queenStatus}
 			</span>
@@ -105,7 +105,7 @@
 	<!-- Next inspection note (most important — shown prominently) -->
 	{#if data.inspection.nextInspectNote}
 		<div class="note-card note-card--next">
-			<p class="note-card__heading">Next Inspection Note</p>
+			<p class="note-card__heading">Notiz nächste Kontrolle</p>
 			<p class="note-card__body">{data.inspection.nextInspectNote}</p>
 		</div>
 	{/if}
@@ -113,16 +113,16 @@
 	<!-- Behaviour notes -->
 	{#if data.inspection.behaviourNotes}
 		<div class="note-card">
-			<p class="note-card__heading">Behaviour Notes</p>
+			<p class="note-card__heading">Verhaltensnotizen</p>
 			<p class="note-card__body">{data.inspection.behaviourNotes}</p>
 		</div>
 	{/if}
 
 	<!-- Weather -->
 	<div class="detail-card">
-		<p class="detail-section-title">Weather</p>
+		<p class="detail-section-title">Wetter</p>
 		{#if data.inspection.weatherUnavailable || (!data.inspection.weatherTemp && !data.inspection.weatherDesc)}
-			<p class="detail-muted">Weather not captured</p>
+			<p class="detail-muted">Wetter nicht erfasst</p>
 		{:else}
 			<div class="weather-detail">
 				{#if data.inspection.weatherTemp != null}
@@ -132,12 +132,12 @@
 					<span class="weather-detail__desc">{data.inspection.weatherDesc}</span>
 				{/if}
 				{#if data.inspection.weatherWindSpeed != null}
-					<span class="weather-detail__wind">{data.inspection.weatherWindSpeed} km/h wind</span>
+					<span class="weather-detail__wind">{data.inspection.weatherWindSpeed} km/h Wind</span>
 				{/if}
 			</div>
 			{#if data.inspection.weatherLat != null && data.inspection.weatherLon != null}
 				<p class="detail-muted detail-muted--small">
-					Location: {data.inspection.weatherLat.toFixed(4)}, {data.inspection.weatherLon.toFixed(4)}
+					Standort: {data.inspection.weatherLat.toFixed(4)}, {data.inspection.weatherLon.toFixed(4)}
 				</p>
 			{/if}
 		{/if}

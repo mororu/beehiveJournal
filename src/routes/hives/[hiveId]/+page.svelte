@@ -53,9 +53,9 @@
 
 	// ── Queen label map ────────────────────────────────────────────────────────
 	const queenLabels: Record<string, string> = {
-		seen: 'Seen',
-		not_seen: 'Not Seen',
-		cells_present: 'Cells',
+		seen: 'Gesehen',
+		not_seen: 'Nicht gesehen',
+		cells_present: 'Zellen',
 	};
 </script>
 
@@ -65,13 +65,13 @@
 
 <!-- Success toast -->
 {#if toastVisible}
-	<div class="toast" role="status" aria-live="polite">Inspection saved</div>
+	<div class="toast" role="status" aria-live="polite">Kontrolle gespeichert</div>
 {/if}
 
 <div class="hive-detail">
 	<!-- ── Header ──────────────────────────────────────────────────────────── -->
 	<div class="hive-detail__header">
-		<a href="/hives" class="back-link">← Hives</a>
+		<a href="/hives" class="back-link">← Bienenstöcke</a>
 		<div class="hive-detail__title-row">
 			<h1>
 				{data.hive.name}
@@ -79,7 +79,7 @@
 					<span class="hive-number">#{data.hive.number}</span>
 				{/if}
 			</h1>
-			<a href="/hives/{data.hive.id}/edit" class="btn btn--ghost btn--sm">Edit</a>
+			<a href="/hives/{data.hive.id}/edit" class="btn btn--ghost btn--sm">Bearbeiten</a>
 		</div>
 		{#if data.hive.description}
 			<p class="hive-description">{data.hive.description}</p>
@@ -88,14 +88,14 @@
 
 	<!-- ── Primary CTA ────────────────────────────────────────────────────── -->
 	<div class="hive-detail__cta">
-		<a href="/hives/{data.hive.id}/inspect" class="btn btn--primary">+ New Inspection</a>
+		<a href="/hives/{data.hive.id}/inspect" class="btn btn--primary">+ Neue Kontrolle</a>
 	</div>
 
 	<!-- ── Date range filter (Story 5.4) ──────────────────────────────────── -->
 	{#if data.inspections.length > 0}
 		<div class="filter-bar">
 			<div class="filter-bar__inputs">
-				<label class="filter-label" for="filterFrom">From</label>
+				<label class="filter-label" for="filterFrom">Von</label>
 				<input
 					class="filter-input"
 					type="date"
@@ -103,7 +103,7 @@
 					bind:value={filterFrom}
 					max={filterTo || undefined}
 				/>
-				<label class="filter-label" for="filterTo">To</label>
+				<label class="filter-label" for="filterTo">Bis</label>
 				<input
 					class="filter-input"
 					type="date"
@@ -113,7 +113,7 @@
 				/>
 			</div>
 			{#if isFiltered}
-				<button class="filter-clear" type="button" onclick={clearFilter}> Clear filter </button>
+				<button class="filter-clear" type="button" onclick={clearFilter}>Filter löschen</button>
 			{/if}
 		</div>
 	{/if}
@@ -128,7 +128,7 @@
 				aria-selected={activeTab === 'list'}
 				onclick={() => (activeTab = 'list')}
 			>
-				History
+				Verlauf
 				{#if isFiltered}
 					<span class="tab-count">({filteredInspections.length})</span>
 				{:else}
@@ -142,7 +142,7 @@
 				aria-selected={activeTab === 'timeline'}
 				onclick={() => (activeTab = 'timeline')}
 			>
-				Timeline
+				Zeitverlauf
 			</button>
 		</div>
 	{/if}
@@ -151,11 +151,11 @@
 	{#if activeTab === 'list'}
 		{#if data.inspections.length === 0}
 			<div class="empty-state">
-				<p>No inspections yet — tap <strong>New Inspection</strong> to start.</p>
+				<p>Noch keine Kontrollen — tippen Sie auf <strong>Neue Kontrolle</strong> um zu beginnen.</p>
 			</div>
 		{:else if filteredInspections.length === 0}
 			<div class="empty-state">
-				<p>No inspections in this date range.</p>
+				<p>Keine Kontrollen in diesem Zeitraum.</p>
 			</div>
 		{:else}
 			<ul class="inspection-list">

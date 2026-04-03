@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Body -->
+  <ellipse cx="16" cy="18" rx="7" ry="9" fill="#f59e0b"/>
+  <!-- Stripes -->
+  <rect x="9" y="16" width="14" height="3" rx="1" fill="#1a1a1a"/>
+  <rect x="9" y="21" width="14" height="3" rx="1" fill="#1a1a1a"/>
+  <!-- Head -->
+  <circle cx="16" cy="9" r="4.5" fill="#f59e0b"/>
+  <!-- Antennae -->
+  <line x1="14" y1="5" x2="11" y2="2" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+  <circle cx="10.5" cy="1.5" r="1" fill="#1a1a1a"/>
+  <line x1="18" y1="5" x2="21" y2="2" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+  <circle cx="21.5" cy="1.5" r="1" fill="#1a1a1a"/>
+  <!-- Wings -->
+  <ellipse cx="8" cy="14" rx="5" ry="3" fill="white" fill-opacity="0.85" transform="rotate(-20 8 14)"/>
+  <ellipse cx="24" cy="14" rx="5" ry="3" fill="white" fill-opacity="0.85" transform="rotate(20 24 14)"/>
+  <!-- Eyes -->
+  <circle cx="14.5" cy="9" r="1" fill="#1a1a1a"/>
+  <circle cx="17.5" cy="9" r="1" fill="#1a1a1a"/>
+  <!-- Stinger -->
+  <ellipse cx="16" cy="27.5" rx="1.5" ry="1" fill="#d97706"/>
+</svg>

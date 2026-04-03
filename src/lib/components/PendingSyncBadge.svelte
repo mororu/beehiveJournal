@@ -5,8 +5,8 @@
 {#if $pendingSync > 0}
 	<span
 		class="sync-badge"
-		title="{$pendingSync} inspection{$pendingSync === 1 ? '' : 's'} pending sync"
-		aria-label="{$pendingSync} pending sync"
+		title="{$pendingSync} Kontrolle{$pendingSync === 1 ? '' : 'n'} ausstehend"
+		aria-label="{$pendingSync} ausstehend"
 	>
 		{$pendingSync}
 	</span>

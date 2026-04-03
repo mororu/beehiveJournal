@@ -41,12 +41,12 @@ export const actions: Actions = {
 			username = (data.get('username') as string | null)?.trim() ?? '';
 			password = (data.get('password') as string | null) ?? '';
 		} catch {
-			return fail(400, { error: 'Invalid form submission' });
+			return fail(400, { error: 'Ungültige Formularübermittlung' });
 		}
 
 		// Basic presence validation — do not reveal which field is missing
 		if (!username || !password) {
-			return fail(400, { error: 'Invalid username or password' });
+			return fail(400, { error: 'Ungültiger Benutzername oder Passwort' });
 		}
 
 		try {
@@ -58,14 +58,14 @@ export const actions: Actions = {
 			// User not found — return the same generic error as wrong password
 			// This prevents username enumeration
 			if (!user) {
-				return fail(400, { error: 'Invalid username or password' });
+				return fail(400, { error: 'Ungültiger Benutzername oder Passwort' });
 			}
 
 			// Verify password using argon2 — CPU-intensive by design
 			const passwordValid = await argon2.verify(user.passwordHash, password);
 
 			if (!passwordValid) {
-				return fail(400, { error: 'Invalid username or password' });
+				return fail(400, { error: 'Ungültiger Benutzername oder Passwort' });
 			}
 
 			// Credentials valid — sign a JWT and set the session cookie
@@ -92,7 +92,7 @@ export const actions: Actions = {
 
 			// Log unexpected errors server-side only — never expose internals to the client
 			console.error('[login] Unexpected error:', err);
-			return fail(500, { error: 'Something went wrong. Please try again.' });
+			return fail(500, { error: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.' });
 		}
 	},
 };

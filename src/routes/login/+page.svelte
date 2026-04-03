@@ -10,14 +10,14 @@
 </script>
 
 <svelte:head>
-	<title>Log in — beehiveJournal</title>
+	<title>Anmelden — beehiveJournal</title>
 </svelte:head>
 
 <div class="login-container">
 	<div class="login-card">
 		<div class="login-header">
 			<h1 class="login-title">beehiveJournal</h1>
-			<p class="login-subtitle">Sign in to your journal</p>
+			<p class="login-subtitle">Bei Ihrem Journal anmelden</p>
 		</div>
 
 		<form
@@ -37,7 +37,7 @@
 			{/if}
 
 			<div class="field">
-				<label class="field-label" for="username">Username</label>
+				<label class="field-label" for="username">Benutzername</label>
 				<input
 					class="field-input"
 					type="text"
@@ -53,7 +53,7 @@
 			</div>
 
 			<div class="field">
-				<label class="field-label" for="password">Password</label>
+				<label class="field-label" for="password">Passwort</label>
 				<input
 					class="field-input"
 					type="password"
@@ -67,9 +67,9 @@
 
 			<button class="submit-button" type="submit" disabled={isSubmitting}>
 				{#if isSubmitting}
-					Signing in…
+					Anmelden…
 				{:else}
-					Log in
+					Anmelden
 				{/if}
 			</button>
 		</form>

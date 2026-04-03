@@ -24,7 +24,7 @@
 		return {
 			labels: sorted.map((i) => {
 				const d = new Date(i.inspectedAt * 1000);
-				return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
+				return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: '2-digit' });
 			}),
 			scores: sorted.map((i) => i.healthScore),
 			ids: sorted.map((i) => i.id),
@@ -94,14 +94,14 @@
 							callback: (v: unknown) => {
 								const n = Number(v);
 								return n === 1
-									? '1 Critical'
+									? '1 Kritisch'
 									: n === 2
-										? '2 Poor'
+										? '2 Schlecht'
 										: n === 3
-											? '3 Fair'
+											? '3 Mittel'
 											: n === 4
-												? '4 Good'
-												: '5 Excellent';
+												? '4 Gut'
+												: '5 Ausgezeichnet';
 							},
 							font: { size: 11 },
 						},
@@ -126,15 +126,15 @@
 								const score = Number(ctx.raw);
 								const word =
 									score === 1
-										? 'Critical'
+										? 'Kritisch'
 										: score === 2
-											? 'Poor'
+											? 'Schlecht'
 											: score === 3
-												? 'Fair'
+												? 'Mittel'
 												: score === 4
-													? 'Good'
-													: 'Excellent';
-								return `Health: ${score} — ${word}`;
+													? 'Gut'
+													: 'Ausgezeichnet';
+								return `Gesundheit: ${score} — ${word}`;
 							},
 						},
 					},
@@ -177,10 +177,10 @@
 <div class="chart-wrap">
 	{#if inspections.length < 2}
 		<div class="chart-placeholder">
-			<p>Add at least 2 inspections to see the health timeline.</p>
+			<p>Mindestens 2 Kontrollen nötig für den Zeitverlauf.</p>
 		</div>
 	{:else}
-		<canvas bind:this={canvas} aria-label="Health score timeline chart"></canvas>
+		<canvas bind:this={canvas} aria-label="Zeitverlauf der Gesundheitsbewertung"></canvas>
 	{/if}
 </div>
 

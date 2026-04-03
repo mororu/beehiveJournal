@@ -8,19 +8,18 @@
 </script>
 
 <svelte:head>
-	<title>Add Hive — beehiveJournal</title>
+	<title>Bienenstock hinzufügen — beehiveJournal</title>
 </svelte:head>
 
 <div class="form-page">
 	<div class="form-page__header">
-		<a href="/hives" class="back-link">← Hives</a>
-		<h1>Add Hive</h1>
+		<a href="/hives" class="back-link">← Bienenstöcke</a>
+		<h1>Bienenstock hinzufügen</h1>
 	</div>
 
 	{#if data.atLimit}
 		<div class="alert alert--warning">
-			You have reached the maximum of 10 active hives. Archive an existing hive before adding a new
-			one.
+			Sie haben die maximale Anzahl von 10 aktiven Bienenstöcken erreicht. Archivieren Sie einen vorhandenen Bienenstock, bevor Sie einen neuen hinzufügen.
 		</div>
 	{:else}
 		<form
@@ -39,7 +38,7 @@
 
 			<div class="field">
 				<label class="field-label" for="name">
-					Hive name <span class="required" aria-hidden="true">*</span>
+					Name des Bienenstocks <span class="required" aria-hidden="true">*</span>
 				</label>
 				<input
 					class="field-input"
@@ -47,7 +46,7 @@
 					id="name"
 					name="name"
 					value={form?.name ?? ''}
-					placeholder="e.g. Juniper"
+					placeholder="z.B. Wacholder"
 					required
 					disabled={isSubmitting}
 					autocomplete="off"
@@ -56,7 +55,7 @@
 
 			<div class="field">
 				<label class="field-label" for="number">
-					Hive number <span class="field-hint">(optional)</span>
+					Nummer <span class="field-hint">(optional)</span>
 				</label>
 				<input
 					class="field-input field-input--short"
@@ -64,7 +63,7 @@
 					id="number"
 					name="number"
 					value={form?.numberRaw ?? ''}
-					placeholder="e.g. 3"
+					placeholder="z.B. 3"
 					min="1"
 					step="1"
 					disabled={isSubmitting}
@@ -73,22 +72,22 @@
 
 			<div class="field">
 				<label class="field-label" for="description">
-					Description <span class="field-hint">(optional)</span>
+					Beschreibung <span class="field-hint">(optional)</span>
 				</label>
 				<textarea
 					class="field-input field-input--textarea"
 					id="description"
 					name="description"
-					placeholder="Notes about this hive..."
+					placeholder="Notizen zu diesem Bienenstock..."
 					disabled={isSubmitting}
 					rows="3">{form?.description ?? ''}</textarea
 				>
 			</div>
 
 			<div class="form-actions">
-				<a href="/hives" class="btn btn--ghost">Cancel</a>
+				<a href="/hives" class="btn btn--ghost">Abbrechen</a>
 				<button class="btn btn--primary" type="submit" disabled={isSubmitting}>
-					{isSubmitting ? 'Saving…' : 'Add Hive'}
+					{isSubmitting ? 'Speichern…' : 'Bienenstock hinzufügen'}
 				</button>
 			</div>
 		</form>

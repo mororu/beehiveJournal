@@ -11,10 +11,10 @@ type QueenStatus = (typeof VALID_QUEEN_STATUSES)[number];
 
 export const load: PageServerLoad = ({ params }) => {
 	const id = parseInt(params.hiveId, 10);
-	if (isNaN(id)) error(404, 'Hive not found');
+	if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
 
 	const hive = getHiveById(id);
-	if (!hive) error(404, 'Hive not found');
+	if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 	return { hive };
 };
@@ -22,10 +22,10 @@ export const load: PageServerLoad = ({ params }) => {
 export const actions: Actions = {
 	default: async ({ params, request }) => {
 		const hiveId = parseInt(params.hiveId, 10);
-		if (isNaN(hiveId)) error(404, 'Hive not found');
+		if (isNaN(hiveId)) error(404, 'Bienenstock nicht gefunden');
 
 		const hive = getHiveById(hiveId);
-		if (!hive) error(404, 'Hive not found');
+		if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 		const data = await request.formData();
 
@@ -35,16 +35,16 @@ export const actions: Actions = {
 		const inspectedAtRaw = (data.get('inspectedAt') as string | null)?.trim() ?? '';
 
 		if (!healthScoreRaw) {
-			return fail(400, { error: 'Health score is required' });
+			return fail(400, { error: 'Gesundheitsbewertung ist erforderlich' });
 		}
 
 		const healthScore = parseInt(healthScoreRaw, 10);
 		if (isNaN(healthScore) || healthScore < 1 || healthScore > 5) {
-			return fail(400, { error: 'Health score must be between 1 and 5' });
+			return fail(400, { error: 'Gesundheitsbewertung muss zwischen 1 und 5 liegen' });
 		}
 
 		if (!VALID_QUEEN_STATUSES.includes(queenStatus as QueenStatus)) {
-			return fail(400, { error: 'Queen status is required' });
+			return fail(400, { error: 'Königinnenstatus ist erforderlich' });
 		}
 
 		const inspectedAt = inspectedAtRaw

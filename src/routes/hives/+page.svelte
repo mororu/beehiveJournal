@@ -8,18 +8,18 @@
 </script>
 
 <svelte:head>
-	<title>My Hives — beehiveJournal</title>
+	<title>Meine Bienenstöcke — beehiveJournal</title>
 </svelte:head>
 
 <div class="hives-page">
 	<div class="page-header">
-		<h1>My Hives</h1>
-		<a href="/hives/new" class="btn btn--primary">+ Add Hive</a>
+		<h1>Meine Bienenstöcke</h1>
+		<a href="/hives/new" class="btn btn--primary">+ Bienenstock hinzufügen</a>
 	</div>
 
 	{#if data.activeHives.length === 0}
 		<div class="empty-state">
-			<p>No hives yet — <a href="/hives/new">add your first hive</a>.</p>
+			<p>Noch keine Bienenstöcke — <a href="/hives/new">ersten Bienenstock hinzufügen</a>.</p>
 		</div>
 	{:else}
 		<ul class="hive-list">
@@ -39,7 +39,7 @@
 				aria-expanded={showArchived}
 			>
 				{showArchived ? '▲' : '▼'}
-				Archived hives ({data.archivedHives.length})
+				Archivierte Bienenstöcke ({data.archivedHives.length})
 			</button>
 
 			{#if showArchived}
@@ -51,7 +51,7 @@
 								{#if hive.number != null}
 									<span class="archived-card__number">#{hive.number}</span>
 								{/if}
-								<span class="archived-card__badge">Archived</span>
+								<span class="archived-card__badge">Archiviert</span>
 							</a>
 						</li>
 					{/each}

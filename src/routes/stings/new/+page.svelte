@@ -13,13 +13,13 @@
 </script>
 
 <svelte:head>
-	<title>Log Sting — beehiveJournal</title>
+	<title>Stich erfassen — beehiveJournal</title>
 </svelte:head>
 
 <div class="form-page">
 	<div class="form-page__header">
-		<a href="/stings" class="back-link">← Sting Log</a>
-		<h1>Log Sting</h1>
+		<a href="/stings" class="back-link">← Stichprotokoll</a>
+		<h1>Stich erfassen</h1>
 	</div>
 
 	<form
@@ -39,7 +39,7 @@
 		<!-- Date & Time -->
 		<div class="field">
 			<label class="field-label" for="stungAt">
-				Date & Time <span class="required" aria-hidden="true">*</span>
+				Datum & Uhrzeit <span class="required" aria-hidden="true">*</span>
 			</label>
 			<input
 				class="field-input"
@@ -55,19 +55,19 @@
 		<!-- Body Location -->
 		<div class="field">
 			<span class="field-label">
-				Body Location <span class="required" aria-hidden="true">*</span>
+				Körperstelle <span class="required" aria-hidden="true">*</span>
 			</span>
 			<BodyMap bind:value={bodyLocation} />
 			<input type="hidden" name="bodyLocation" value={bodyLocation} />
 			{#if form?.error === 'Body location is required' && !bodyLocation}
-				<p class="field-error">Please select a location on the body map.</p>
+				<p class="field-error">Bitte wählen Sie eine Stelle auf der Körperkarte.</p>
 			{/if}
 		</div>
 
 		<!-- Hive (optional) -->
 		<div class="field">
 			<label class="field-label" for="hiveId">
-				Hive <span class="field-hint">(optional)</span>
+				Bienenstock <span class="field-hint">(optional)</span>
 			</label>
 			<select
 				class="field-input field-input--select"
@@ -75,9 +75,9 @@
 				name="hiveId"
 				disabled={isSubmitting}
 			>
-				<option value="">— None —</option>
+				<option value="">— Keiner —</option>
 				{#if data.activeHives.length > 0}
-					<optgroup label="Active hives">
+					<optgroup label="Aktive Bienenstöcke">
 						{#each data.activeHives as hive (hive.id)}
 							<option value={String(hive.id)} selected={form?.hiveIdRaw === String(hive.id)}>
 								{hive.name}{hive.number != null ? ` (#${hive.number})` : ''}
@@ -86,10 +86,10 @@
 					</optgroup>
 				{/if}
 				{#if data.archivedHives.length > 0}
-					<optgroup label="Archived hives">
+					<optgroup label="Archivierte Bienenstöcke">
 						{#each data.archivedHives as hive (hive.id)}
 							<option value={String(hive.id)} selected={form?.hiveIdRaw === String(hive.id)}>
-								{hive.name} (archived)
+								{hive.name} (archiviert)
 							</option>
 						{/each}
 					</optgroup>
@@ -100,13 +100,13 @@
 		<!-- Notes (optional) -->
 		<div class="field">
 			<label class="field-label" for="notes">
-				Notes <span class="field-hint">(optional)</span>
+				Notizen <span class="field-hint">(optional)</span>
 			</label>
 			<textarea
 				class="field-input field-input--textarea"
 				id="notes"
 				name="notes"
-				placeholder="e.g. Hive was very defensive, disturbed nest..."
+				placeholder="z.B. Volk war sehr defensiv, Nest gestört..."
 				rows="3"
 				disabled={isSubmitting}>{form?.notes ?? ''}</textarea
 			>
@@ -116,9 +116,9 @@
 		<input type="hidden" name="clientId" value={crypto.randomUUID()} />
 
 		<div class="form-actions">
-			<a href="/stings" class="btn btn--ghost">Cancel</a>
+			<a href="/stings" class="btn btn--ghost">Abbrechen</a>
 			<button class="btn btn--primary" type="submit" disabled={isSubmitting}>
-				{isSubmitting ? 'Saving…' : 'Log Sting'}
+				{isSubmitting ? 'Speichern…' : 'Stich erfassen'}
 			</button>
 		</div>
 	</form>

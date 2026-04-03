@@ -29,15 +29,15 @@
 </script>
 
 <svelte:head>
-	<title>Sting Log — beehiveJournal</title>
+	<title>Stichprotokoll — beehiveJournal</title>
 </svelte:head>
 
 <!-- Delete confirmation dialog -->
 <dialog open={deleteDialogOpen || undefined} class="dialog" aria-labelledby="delete-sting-title">
-	<h2 id="delete-sting-title" class="dialog__title">Delete this sting entry?</h2>
-	<p class="dialog__body">This cannot be undone.</p>
+	<h2 id="delete-sting-title" class="dialog__title">Diesen Sticheintrag löschen?</h2>
+	<p class="dialog__body">Dies kann nicht rückgängig gemacht werden.</p>
 	<div class="dialog__actions">
-		<button class="btn btn--ghost" type="button" onclick={cancelDelete}>Cancel</button>
+		<button class="btn btn--ghost" type="button" onclick={cancelDelete}>Abbrechen</button>
 		{#if pendingDeleteId !== null}
 			<form
 				method="POST"
@@ -53,7 +53,7 @@
 			>
 				<input type="hidden" name="stingId" value={pendingDeleteId} />
 				<button class="btn btn--danger" type="submit" disabled={isDeleting}>
-					{isDeleting ? 'Deleting…' : 'Delete'}
+					{isDeleting ? 'Löschen…' : 'Löschen'}
 				</button>
 			</form>
 		{/if}
@@ -63,21 +63,21 @@
 <div class="page">
 	<!-- Header -->
 	<div class="page-header">
-		<h1>Sting Log</h1>
-		<a href="/stings/new" class="btn btn--primary">+ Log Sting</a>
+		<h1>Stichprotokoll</h1>
+		<a href="/stings/new" class="btn btn--primary">+ Stich erfassen</a>
 	</div>
 
 	<!-- Filter by hive -->
 	{#if data.hivesWithStings.length > 0}
 		<div class="filter-bar">
-			<label class="filter-label" for="hiveFilter">Filter by hive</label>
+			<label class="filter-label" for="hiveFilter">Nach Bienenstock filtern</label>
 			<select
 				class="filter-select"
 				id="hiveFilter"
 				value={data.activeHiveFilter ? String(data.activeHiveFilter) : ''}
 				onchange={(e) => applyFilter((e.target as HTMLSelectElement).value)}
 			>
-				<option value="">All hives</option>
+				<option value="">Alle Bienenstöcke</option>
 				{#each data.hivesWithStings as hive (hive.id)}
 					<option value={String(hive.id)}>{hive.name}</option>
 				{/each}
@@ -89,9 +89,9 @@
 	{#if data.stings.length === 0}
 		<div class="empty-state">
 			{#if data.activeHiveFilter}
-				<p>No sting incidents for this hive.</p>
+				<p>Keine Stichvorfälle für diesen Bienenstock.</p>
 			{:else}
-				<p>No sting incidents logged yet.</p>
+				<p>Noch keine Stichvorfälle erfasst.</p>
 			{/if}
 		</div>
 	{:else}
@@ -105,14 +105,14 @@
 							{#if sting.hiveName}
 								<span class="sting-card__hive">{sting.hiveName}</span>
 							{:else}
-								<span class="sting-card__hive sting-card__hive--unknown">Unknown hive</span>
+								<span class="sting-card__hive sting-card__hive--unknown">Unbekannter Bienenstock</span>
 							{/if}
 						</div>
 						<button
 							class="btn btn--ghost btn--sm btn--delete-trigger"
 							type="button"
 							onclick={() => requestDelete(sting.id)}
-							aria-label="Delete sting on {formatDate(sting.stungAt)}"
+							aria-label="Stich vom {formatDate(sting.stungAt)} löschen"
 						>
 							Delete
 						</button>

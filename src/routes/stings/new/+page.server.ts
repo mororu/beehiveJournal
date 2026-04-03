@@ -25,7 +25,7 @@ export const actions: Actions = {
 
 		if (!bodyLocation) {
 			return fail(400, {
-				error: 'Body location is required',
+				error: 'Körperstelle ist erforderlich',
 				bodyLocation,
 				hiveIdRaw,
 				notes: notes ?? '',
@@ -39,7 +39,7 @@ export const actions: Actions = {
 			hiveId = parseInt(hiveIdRaw, 10);
 			if (isNaN(hiveId)) {
 				return fail(400, {
-					error: 'Invalid hive selection',
+					error: 'Ungültige Bienenstock-Auswahl',
 					bodyLocation,
 					hiveIdRaw,
 					notes: notes ?? '',

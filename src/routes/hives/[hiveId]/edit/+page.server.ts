@@ -15,10 +15,10 @@ const MAX_ACTIVE_HIVES = 10;
 
 export const load: PageServerLoad = ({ params }) => {
 	const id = parseInt(params.hiveId, 10);
-	if (isNaN(id)) error(404, 'Hive not found');
+	if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
 
 	const hive = getHiveById(id);
-	if (!hive) error(404, 'Hive not found');
+	if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 	const inspectionCount = countInspectionsByHiveId(id);
 
@@ -29,10 +29,10 @@ export const actions: Actions = {
 	// ── Update name/number/description ────────────────────────────────────────
 	update: async ({ params, request }) => {
 		const id = parseInt(params.hiveId, 10);
-		if (isNaN(id)) error(404, 'Hive not found');
+		if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
 
 		const hive = getHiveById(id);
-		if (!hive) error(404, 'Hive not found');
+		if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 		const data = await request.formData();
 		const name = (data.get('name') as string | null)?.trim() ?? '';
@@ -42,7 +42,7 @@ export const actions: Actions = {
 		if (!name) {
 			return fail(400, {
 				action: 'update',
-				error: 'Hive name is required',
+				error: 'Name des Bienenstocks ist erforderlich',
 				name,
 				numberRaw,
 				description,
@@ -79,10 +79,10 @@ export const actions: Actions = {
 	// ── Archive ───────────────────────────────────────────────────────────────
 	archive: async ({ params }) => {
 		const id = parseInt(params.hiveId, 10);
-		if (isNaN(id)) error(404, 'Hive not found');
+		if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
 
 		const hive = getHiveById(id);
-		if (!hive) error(404, 'Hive not found');
+		if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 		updateHive(id, { isActive: false });
 		redirect(302, '/hives');
@@ -91,10 +91,10 @@ export const actions: Actions = {
 	// ── Unarchive ─────────────────────────────────────────────────────────────
 	unarchive: async ({ params }) => {
 		const id = parseInt(params.hiveId, 10);
-		if (isNaN(id)) error(404, 'Hive not found');
+		if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
 
 		const hive = getHiveById(id);
-		if (!hive) error(404, 'Hive not found');
+		if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 		if (countActiveHives() >= MAX_ACTIVE_HIVES) {
 			return fail(422, {
@@ -110,10 +110,10 @@ export const actions: Actions = {
 	// ── Delete ────────────────────────────────────────────────────────────────
 	delete: async ({ params, request }) => {
 		const id = parseInt(params.hiveId, 10);
-		if (isNaN(id)) error(404, 'Hive not found');
+		if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
 
 		const hive = getHiveById(id);
-		if (!hive) error(404, 'Hive not found');
+		if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 		// Require the user to type the hive name to confirm
 		const data = await request.formData();

@@ -37,18 +37,18 @@
 
 	// WMO weather code → human-readable description
 	function wmoDescription(code: number): string {
-		if (code === 0) return 'Clear sky';
-		if (code === 1) return 'Mainly clear';
-		if (code === 2) return 'Partly cloudy';
-		if (code === 3) return 'Overcast';
-		if (code <= 49) return 'Foggy';
-		if (code <= 57) return 'Drizzle';
-		if (code <= 67) return 'Rain';
-		if (code <= 77) return 'Snow';
-		if (code <= 82) return 'Rain showers';
-		if (code <= 86) return 'Snow showers';
-		if (code <= 99) return 'Thunderstorm';
-		return 'Unknown';
+		if (code === 0) return 'Klarer Himmel';
+		if (code === 1) return 'Überwiegend klar';
+		if (code === 2) return 'Teilweise bewölkt';
+		if (code === 3) return 'Bedeckt';
+		if (code <= 49) return 'Neblig';
+		if (code <= 57) return 'Nieselregen';
+		if (code <= 67) return 'Regen';
+		if (code <= 77) return 'Schnee';
+		if (code <= 82) return 'Regenschauer';
+		if (code <= 86) return 'Schneeschauer';
+		if (code <= 99) return 'Gewitter';
+		return 'Unbekannt';
 	}
 
 	// Fetch weather on mount, client-side only
@@ -85,7 +85,7 @@
 			const timer = setTimeout(() => controller.abort(), 5_000);
 
 			const res = await fetch(
-				`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`,
+				`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m`,
 				{ signal: controller.signal }
 			);
 			clearTimeout(timer);
@@ -93,13 +93,13 @@
 			if (!res.ok) throw new Error('Weather API error');
 
 			const json = await res.json();
-			const cw = json.current_weather;
-			const code: number = cw.weathercode;
+			const cw = json.current;
+			const code: number = cw.weather_code;
 
 			weatherData = {
-				temp: Math.round(cw.temperature * 10) / 10,
+				temp: Math.round(cw.temperature_2m * 10) / 10,
 				desc: wmoDescription(code),
-				windSpeed: Math.round(cw.windspeed * 10) / 10,
+				windSpeed: Math.round(cw.wind_speed_10m * 10) / 10,
 				code,
 				lat,
 				lon,
@@ -112,13 +112,13 @@
 </script>
 
 <svelte:head>
-	<title>New Inspection — {data.hive.name}</title>
+	<title>Neue Kontrolle — {data.hive.name}</title>
 </svelte:head>
 
 <div class="form-page">
 	<div class="form-page__header">
 		<a href="/hives/{data.hive.id}" class="back-link">← {data.hive.name}</a>
-		<h1>New Inspection</h1>
+		<h1>Neue Kontrolle</h1>
 	</div>
 
 	<form
@@ -190,8 +190,8 @@
 		<!-- Story 7.4 AC4: offline save confirmation -->
 		{#if offlineSaved}
 			<div class="form-offline-saved" role="status">
-				Saved offline — will sync when you reconnect.
-				<a href="/hives/{data.hive.id}" class="offline-saved__link">← Back to hive</a>
+				Offline gespeichert — wird synchronisiert, sobald Sie wieder verbunden sind.
+				<a href="/hives/{data.hive.id}" class="offline-saved__link">← Zurück zum Bienenstock</a>
 			</div>
 		{/if}
 
@@ -203,10 +203,10 @@
 		<!-- ── Health Score ─────────────────────────────────────────────────── -->
 		<div class="field">
 			<span class="field-label">
-				Health Score <span class="required" aria-hidden="true">*</span>
+				Gesundheitsbewertung <span class="required" aria-hidden="true">*</span>
 			</span>
 			{#if touched && healthScore === null}
-				<span class="inline-error" role="alert">Select a health score</span>
+				<span class="inline-error" role="alert">Bitte Gesundheitsbewertung auswählen</span>
 			{/if}
 			<div class="score-row" role="group" aria-label="Health score 1 to 5">
 				{#each [1, 2, 3, 4, 5] as score (score)}
@@ -234,13 +234,13 @@
 		<!-- ── Queen Status ────────────────────────────────────────────────── -->
 		<div class="field">
 			<span class="field-label">
-				Queen Status <span class="required" aria-hidden="true">*</span>
+				Königinnenstatus <span class="required" aria-hidden="true">*</span>
 			</span>
 			{#if touched && queenStatus === null}
-				<span class="inline-error" role="alert">Select a queen status</span>
+				<span class="inline-error" role="alert">Bitte Königinnenstatus auswählen</span>
 			{/if}
 			<div class="queen-row" role="group" aria-label="Queen status">
-				{#each [{ value: 'seen', label: 'Seen' }, { value: 'not_seen', label: 'Not Seen' }, { value: 'cells_present', label: 'Cells Present' }] as opt (opt.value)}
+				{#each [{ value: 'seen', label: 'Gesehen' }, { value: 'not_seen', label: 'Nicht gesehen' }, { value: 'cells_present', label: 'Zellen vorhanden' }] as opt (opt.value)}
 					<button
 						class="queen-btn"
 						class:queen-btn--selected={queenStatus === opt.value}
@@ -259,7 +259,7 @@
 
 		<!-- ── Inspection Date/Time ────────────────────────────────────────── -->
 		<div class="field">
-			<label class="field-label" for="inspectedAt">Date & Time</label>
+			<label class="field-label" for="inspectedAt">Datum & Uhrzeit</label>
 			<input
 				class="field-input"
 				type="datetime-local"
@@ -273,13 +273,13 @@
 		<!-- ── Behaviour Notes ─────────────────────────────────────────────── -->
 		<div class="field">
 			<label class="field-label" for="behaviourNotes">
-				Behaviour Notes <span class="field-hint">(optional, max 2000 chars)</span>
+				Verhaltensnotizen <span class="field-hint">(optional, max. 2000 Zeichen)</span>
 			</label>
 			<textarea
 				class="field-input field-input--textarea"
 				id="behaviourNotes"
 				name="behaviourNotes"
-				placeholder="e.g. Calm, good brood pattern, saw eggs..."
+				placeholder="z.B. Ruhig, gutes Brutnetz, Eier gesehen..."
 				maxlength="2000"
 				rows="3"
 				disabled={isSubmitting}
@@ -289,13 +289,13 @@
 		<!-- ── Next Inspection Note ────────────────────────────────────────── -->
 		<div class="field">
 			<label class="field-label" for="nextInspectNote">
-				Next Inspection Note <span class="field-hint">(optional, max 1000 chars)</span>
+				Notiz nächste Kontrolle <span class="field-hint">(optional, max. 1000 Zeichen)</span>
 			</label>
 			<textarea
 				class="field-input field-input--textarea"
 				id="nextInspectNote"
 				name="nextInspectNote"
-				placeholder="e.g. Check for swarm cells, add super..."
+				placeholder="z.B. Schwarmzellen prüfen, Honigraum aufsetzen..."
 				maxlength="1000"
 				rows="2"
 				disabled={isSubmitting}
@@ -307,7 +307,7 @@
 			{#if weatherStatus === 'loading'}
 				<div class="weather-badge weather-badge--loading">
 					<span class="spinner" aria-hidden="true"></span>
-					<span>Fetching weather…</span>
+					<span>Wetter wird geladen…</span>
 				</div>
 			{:else if weatherStatus === 'ready' && weatherData}
 				<div class="weather-badge weather-badge--ready">
@@ -324,7 +324,7 @@
 				<input type="hidden" name="weatherLon" value={weatherData.lon} />
 				<input type="hidden" name="weatherUnavailable" value="false" />
 			{:else}
-				<div class="weather-badge weather-badge--unavailable">Weather not captured</div>
+				<div class="weather-badge weather-badge--unavailable">Wetter nicht erfasst</div>
 				<input type="hidden" name="weatherUnavailable" value="true" />
 			{/if}
 		</div>
@@ -334,14 +334,14 @@
 
 		<!-- ── Submit ──────────────────────────────────────────────────────── -->
 		<div class="form-actions">
-			<a href="/hives/{data.hive.id}" class="btn btn--ghost">Cancel</a>
+			<a href="/hives/{data.hive.id}" class="btn btn--ghost">Abbrechen</a>
 			<button
 				class="btn btn--primary"
 				type="submit"
 				disabled={isSubmitting}
 				aria-disabled={isSubmitting}
 			>
-				{isSubmitting ? 'Saving…' : 'Save Inspection'}
+				{isSubmitting ? 'Speichern…' : 'Kontrolle speichern'}
 			</button>
 		</div>
 	</form>

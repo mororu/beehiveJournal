@@ -15,10 +15,10 @@ export const load: PageServerLoad = ({ params }) => {
 	if (isNaN(hiveId) || isNaN(inspId)) error(404, 'Not found');
 
 	const hive = getHiveById(hiveId);
-	if (!hive) error(404, 'Hive not found');
+	if (!hive) error(404, 'Bienenstock nicht gefunden');
 
 	const inspection = getInspectionById(inspId);
-	if (!inspection || inspection.hiveId !== hiveId) error(404, 'Inspection not found');
+	if (!inspection || inspection.hiveId !== hiveId) error(404, 'Kontrolle nicht gefunden');
 
 	return { hive, inspection };
 };
@@ -30,7 +30,7 @@ export const actions: Actions = {
 		if (isNaN(hiveId) || isNaN(inspId)) error(404, 'Not found');
 
 		const inspection = getInspectionById(inspId);
-		if (!inspection || inspection.hiveId !== hiveId) error(404, 'Inspection not found');
+		if (!inspection || inspection.hiveId !== hiveId) error(404, 'Kontrolle nicht gefunden');
 
 		const data = await request.formData();
 		const healthScoreRaw = data.get('healthScore') as string | null;
@@ -40,14 +40,14 @@ export const actions: Actions = {
 		const nextInspectNote = (data.get('nextInspectNote') as string | null)?.trim() || null;
 
 		if (!healthScoreRaw) {
-			return fail(400, { error: 'Health score is required' });
+			return fail(400, { error: 'Gesundheitsbewertung ist erforderlich' });
 		}
 		const healthScore = parseInt(healthScoreRaw, 10);
 		if (isNaN(healthScore) || healthScore < 1 || healthScore > 5) {
-			return fail(400, { error: 'Health score must be between 1 and 5' });
+			return fail(400, { error: 'Gesundheitsbewertung muss zwischen 1 und 5 liegen' });
 		}
 		if (!VALID_QUEEN_STATUSES.includes(queenStatus as QueenStatus)) {
-			return fail(400, { error: 'Queen status is required' });
+			return fail(400, { error: 'Königinnenstatus ist erforderlich' });
 		}
 
 		const inspectedAt = inspectedAtRaw ? fromDatetimeLocal(inspectedAtRaw) : inspection.inspectedAt;

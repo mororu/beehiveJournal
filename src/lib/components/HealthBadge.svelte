@@ -8,21 +8,21 @@
 
 	const label = $derived(
 		score === 1
-			? 'Critical'
+			? 'Kritisch'
 			: score === 2
-				? 'Poor'
+				? 'Schlecht'
 				: score === 3
-					? 'Fair'
+					? 'Mittel'
 					: score === 4
-						? 'Good'
-						: 'Excellent'
+						? 'Gut'
+						: 'Ausgezeichnet'
 	);
 </script>
 
 <span
 	class="health-badge {colorClass}"
-	title="Health: {label}"
-	aria-label="Health score {score} — {label}"
+	title="Gesundheit: {label}"
+	aria-label="Gesundheitsbewertung {score} — {label}"
 >
 	{score}
 </span>

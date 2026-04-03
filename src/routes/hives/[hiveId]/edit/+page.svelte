@@ -14,36 +14,35 @@
 </script>
 
 <svelte:head>
-	<title>Edit {data.hive.name} — beehiveJournal</title>
+	<title>{data.hive.name} bearbeiten — beehiveJournal</title>
 </svelte:head>
 
 <!-- ── Archive confirmation dialog ─────────────────────────────────────── -->
 <dialog open={archiveDialogOpen || undefined} class="dialog" aria-labelledby="archive-dialog-title">
-	<h2 id="archive-dialog-title" class="dialog__title">Archive {data.hive.name}?</h2>
+	<h2 id="archive-dialog-title" class="dialog__title">{data.hive.name} archivieren?</h2>
 	<p class="dialog__body">
-		It will be hidden from the active list but all inspection data will be kept. You can unarchive
-		it later.
+		Er wird aus der aktiven Liste ausgeblendet, aber alle Kontrolldaten werden gespeichert. Sie können ihn später wiederherstellen.
 	</p>
 	<div class="dialog__actions">
 		<button class="btn btn--ghost" type="button" onclick={() => (archiveDialogOpen = false)}>
-			Cancel
+			Abbrechen
 		</button>
 		<form method="POST" action="?/archive" use:enhance>
-			<button class="btn btn--warning" type="submit">Archive Hive</button>
+			<button class="btn btn--warning" type="submit">Bienenstock archivieren</button>
 		</form>
 	</div>
 </dialog>
 
 <!-- ── Delete confirmation dialog ──────────────────────────────────────── -->
 <dialog open={deleteDialogOpen || undefined} class="dialog" aria-labelledby="delete-dialog-title">
-	<h2 id="delete-dialog-title" class="dialog__title">Delete {data.hive.name}?</h2>
+	<h2 id="delete-dialog-title" class="dialog__title">{data.hive.name} löschen?</h2>
 	<p class="dialog__body">
-		This will permanently delete <strong>{data.hive.name}</strong> and all
+		Dies löscht dauerhaft <strong>{data.hive.name}</strong> und alle
 		<strong>{data.inspectionCount}</strong>
-		{data.inspectionCount === 1 ? 'inspection' : 'inspections'} associated with it. This cannot be undone.
+		{data.inspectionCount === 1 ? 'Kontrolle' : 'Kontrollen'} dauerhaft. Dies kann nicht rückgängig gemacht werden.
 	</p>
 	<p class="dialog__body">
-		Type <strong>{data.hive.name}</strong> to confirm:
+		Geben Sie <strong>{data.hive.name}</strong> zur Bestätigung ein:
 	</p>
 
 	{#if form?.action === 'delete' && form?.error}
@@ -84,7 +83,7 @@
 				Cancel
 			</button>
 			<button class="btn btn--danger" type="submit" disabled={!deleteEnabled}>
-				Permanently Delete
+				Dauerhaft löschen
 			</button>
 		</div>
 	</form>
@@ -94,18 +93,18 @@
 <div class="form-page">
 	<div class="form-page__header">
 		<a href="/hives/{data.hive.id}" class="back-link">← {data.hive.name}</a>
-		<h1>Edit Hive</h1>
+		<h1>Bienenstock bearbeiten</h1>
 	</div>
 
 	<!-- ── Unarchive banner (shown only for archived hives) ───────────────── -->
 	{#if !data.hive.isActive}
 		<div class="archived-banner">
-			<span>This hive is archived.</span>
+			<span>Dieser Bienenstock ist archiviert.</span>
 			{#if form?.action === 'unarchive' && form?.error}
 				<span class="archived-banner__error">{form.error}</span>
 			{/if}
 			<form method="POST" action="?/unarchive" use:enhance>
-				<button class="btn btn--sm btn--primary" type="submit">Unarchive</button>
+				<button class="btn btn--sm btn--primary" type="submit">Wiederherstellen</button>
 			</form>
 		</div>
 	{/if}
@@ -128,7 +127,7 @@
 
 		<div class="field">
 			<label class="field-label" for="name">
-				Hive name <span class="required" aria-hidden="true">*</span>
+				Name des Bienenstocks <span class="required" aria-hidden="true">*</span>
 			</label>
 			<input
 				class="field-input"
@@ -144,7 +143,7 @@
 
 		<div class="field">
 			<label class="field-label" for="number">
-				Hive number <span class="field-hint">(optional)</span>
+				Nummer <span class="field-hint">(optional)</span>
 			</label>
 			<input
 				class="field-input field-input--short"
@@ -164,7 +163,7 @@
 
 		<div class="field">
 			<label class="field-label" for="description">
-				Description <span class="field-hint">(optional)</span>
+				Beschreibung <span class="field-hint">(optional)</span>
 			</label>
 			<textarea
 				class="field-input field-input--textarea"
@@ -179,39 +178,39 @@
 		</div>
 
 		<div class="form-actions">
-			<a href="/hives/{data.hive.id}" class="btn btn--ghost">Cancel</a>
+			<a href="/hives/{data.hive.id}" class="btn btn--ghost">Abbrechen</a>
 			<button class="btn btn--primary" type="submit" disabled={isSubmitting}>
-				{isSubmitting ? 'Saving…' : 'Save Changes'}
+				{isSubmitting ? 'Speichern…' : 'Änderungen speichern'}
 			</button>
 		</div>
 	</form>
 
 	<!-- ── Danger zone ─────────────────────────────────────────────────── -->
 	<div class="danger-zone">
-		<h2 class="danger-zone__title">Danger Zone</h2>
+		<h2 class="danger-zone__title">Gefahrenbereich</h2>
 
 		{#if data.hive.isActive}
 			<div class="danger-zone__item">
 				<div class="danger-zone__info">
-					<strong>Archive this hive</strong>
-					<span>Hide from the active list. All inspections are kept.</span>
+					<strong>Diesen Bienenstock archivieren</strong>
+					<span>Aus der aktiven Liste ausblenden. Alle Kontrollen werden gespeichert.</span>
 				</div>
 				<button
 					class="btn btn--sm btn--warning"
 					type="button"
 					onclick={() => (archiveDialogOpen = true)}
 				>
-					Archive
+					Archivieren
 				</button>
 			</div>
 		{/if}
 
 		<div class="danger-zone__item">
 			<div class="danger-zone__info">
-				<strong>Delete this hive</strong>
+				<strong>Diesen Bienenstock löschen</strong>
 				<span>
-					Permanently delete this hive and all {data.inspectionCount}
-					{data.inspectionCount === 1 ? 'inspection' : 'inspections'}. Cannot be undone.
+					Diesen Bienenstock und alle {data.inspectionCount}
+					{data.inspectionCount === 1 ? 'Kontrolle' : 'Kontrollen'} dauerhaft löschen. Kann nicht rückgängig gemacht werden.
 				</span>
 			</div>
 			<button
@@ -219,7 +218,7 @@
 				type="button"
 				onclick={() => (deleteDialogOpen = true)}
 			>
-				Delete
+				Löschen
 			</button>
 		</div>
 	</div>
