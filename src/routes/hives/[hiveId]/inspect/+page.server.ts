@@ -3,6 +3,13 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { getHiveById } from '$lib/server/db/queries/hives.js';
 import { createInspection } from '$lib/server/db/queries/inspections.js';
+import {
+	createPhoto,
+	countPhotosByInspectionId,
+	MAX_PHOTOS_PER_INSPECTION,
+	MAX_PHOTO_BYTES,
+	ALLOWED_MIME_TYPES,
+} from '$lib/server/db/queries/photos.js';
 import { fromDatetimeLocal } from '$lib/client/utils/date.js';
 import type { Actions, PageServerLoad } from './$types.js';
 
@@ -63,7 +70,7 @@ export const actions: Actions = {
 		const weatherLatRaw = data.get('weatherLat') as string | null;
 		const weatherLonRaw = data.get('weatherLon') as string | null;
 
-		createInspection({
+		const inspection = createInspection({
 			hiveId,
 			inspectedAt,
 			healthScore,
@@ -79,6 +86,34 @@ export const actions: Actions = {
 			weatherLon: weatherLonRaw ? parseFloat(weatherLonRaw) : null,
 			clientId: (data.get('clientId') as string | null) || null,
 		});
+
+		// ── Photos ────────────────────────────────────────────────────────────
+		const photoFiles = data.getAll('photos') as File[];
+		const validPhotos = photoFiles.filter((f) => f instanceof File && f.size > 0);
+
+		if (validPhotos.length > 0) {
+			const currentCount = countPhotosByInspectionId(inspection.id);
+			const available = MAX_PHOTOS_PER_INSPECTION - currentCount;
+
+			if (validPhotos.length > available) {
+				return fail(400, {
+					error: `Maximal ${MAX_PHOTOS_PER_INSPECTION} Fotos pro Kontrolle erlaubt.`,
+				});
+			}
+
+			for (const file of validPhotos) {
+				if (file.size > MAX_PHOTO_BYTES) {
+					return fail(400, { error: `Foto "${file.name}" ist zu groß (max. 10 MB).` });
+				}
+				const mimeType = file.type || 'image/jpeg';
+				if (!ALLOWED_MIME_TYPES.includes(mimeType as (typeof ALLOWED_MIME_TYPES)[number])) {
+					return fail(400, { error: `Dateityp "${mimeType}" wird nicht unterstützt.` });
+				}
+
+				const buffer = Buffer.from(await file.arrayBuffer());
+				createPhoto({ inspectionId: inspection.id, data: buffer, mimeType });
+			}
+		}
 
 		// ?saved=1 triggers the success toast on the hive detail page (Story 4.5)
 		redirect(302, `/hives/${hiveId}?saved=1`);

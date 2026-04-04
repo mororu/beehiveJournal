@@ -4,6 +4,7 @@
 	import { addToOutbox } from '$lib/client/offline/db.js';
 	import { pendingSync } from '$lib/client/stores/pendingSync.js';
 	import { fromDatetimeLocal, toDatetimeLocal } from '$lib/client/utils/date.js';
+	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import type { ActionData, PageData } from './$types.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -123,6 +124,7 @@
 
 	<form
 		method="POST"
+		enctype="multipart/form-data"
 		use:enhance={(event) => {
 			touched = true;
 
@@ -331,6 +333,13 @@
 
 		<!-- Stable UUID for this form instance — used for server dedup and IDB keying -->
 		<input type="hidden" name="clientId" value={clientId} />
+
+		<!-- ── Photos ─────────────────────────────────────────────────────── -->
+		{#if $isOnline}
+			<PhotoCapture disabled={isSubmitting} />
+		{:else}
+			<div class="photo-offline-note">Fotos können nur online hinzugefügt werden.</div>
+		{/if}
 
 		<!-- ── Submit ──────────────────────────────────────────────────────── -->
 		<div class="form-actions">
@@ -604,6 +613,17 @@
 		to {
 			transform: rotate(360deg);
 		}
+	}
+
+	/* ── Photos offline note ── */
+	.photo-offline-note {
+		font-size: 0.825rem;
+		color: var(--color-text-muted, #6b7280);
+		background: #f9fafb;
+		border: 1px dashed var(--color-border, #d1d5db);
+		border-radius: 8px;
+		padding: 0.625rem 0.875rem;
+		margin-bottom: 1.5rem;
 	}
 
 	/* ── Form actions ── */

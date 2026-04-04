@@ -3,6 +3,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getHiveById } from '$lib/server/db/queries/hives.js';
 import { getInspectionById, deleteInspection } from '$lib/server/db/queries/inspections.js';
+import { getPhotoMetaByInspectionId } from '$lib/server/db/queries/photos.js';
 import type { Actions, PageServerLoad } from './$types.js';
 
 export const load: PageServerLoad = ({ params }) => {
@@ -16,7 +17,8 @@ export const load: PageServerLoad = ({ params }) => {
 	const inspection = getInspectionById(inspId);
 	if (!inspection || inspection.hiveId !== hiveId) error(404, 'Inspection not found');
 
-	return { hive, inspection };
+	const photos = getPhotoMetaByInspectionId(inspId);
+	return { hive, inspection, photos };
 };
 
 export const actions: Actions = {

@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { blob, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 // ─── Users ───────────────────────────────────────────────────────────────────
 // Single row — single-user app. Created by setup script at deploy time.
@@ -57,6 +57,21 @@ export const inspections = sqliteTable(
 	(t) => [uniqueIndex('inspections_client_id_unique').on(t.clientId)]
 );
 
+// ─── Inspection Photos ────────────────────────────────────────────────────────
+// Binary photos attached to an inspection.
+// Stored as BLOBs directly in SQLite — no filesystem dependency.
+// Max 5 photos per inspection enforced at the app layer.
+// mimeType is stored alongside the data so the HTTP response sets the right Content-Type.
+export const inspectionPhotos = sqliteTable('inspection_photos', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	inspectionId: integer('inspection_id')
+		.notNull()
+		.references(() => inspections.id, { onDelete: 'cascade' }),
+	data: blob('data', { mode: 'buffer' }).notNull(), // raw binary
+	mimeType: text('mime_type').notNull(), // e.g. 'image/jpeg'
+	createdAt: integer('created_at').notNull(), // Unix epoch
+});
+
 // ─── Sting Incidents ─────────────────────────────────────────────────────────
 // Log of times Manuel was stung. Optionally linked to a hive.
 // hive_id is nullable (set null on delete) — sting records survive hive deletion.
@@ -86,3 +101,5 @@ export type Inspection = typeof inspections.$inferSelect;
 export type NewInspection = typeof inspections.$inferInsert;
 export type StingIncident = typeof stingIncidents.$inferSelect;
 export type NewStingIncident = typeof stingIncidents.$inferInsert;
+export type InspectionPhoto = typeof inspectionPhotos.$inferSelect;
+export type NewInspectionPhoto = typeof inspectionPhotos.$inferInsert;

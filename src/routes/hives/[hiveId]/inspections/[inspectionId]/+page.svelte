@@ -118,6 +118,31 @@
 		</div>
 	{/if}
 
+	<!-- Photos -->
+	{#if data.photos.length > 0}
+		<div class="detail-card">
+			<p class="detail-section-title">Fotos ({data.photos.length})</p>
+			<div class="photo-grid">
+				{#each data.photos as photo (photo.id)}
+					<a
+						href="/api/photos/{photo.id}"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="photo-thumb"
+						aria-label="Foto öffnen"
+					>
+						<img
+							src="/api/photos/{photo.id}"
+							alt="Inspektionsfoto"
+							class="photo-thumb__img"
+							loading="lazy"
+						/>
+					</a>
+				{/each}
+			</div>
+		</div>
+	{/if}
+
 	<!-- Weather -->
 	<div class="detail-card">
 		<p class="detail-section-title">Wetter</p>
@@ -343,6 +368,33 @@
 		margin: 0;
 		line-height: 1.6;
 		white-space: pre-wrap;
+	}
+
+	/* ── Photos ── */
+	.photo-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+		gap: 0.5rem;
+	}
+
+	.photo-thumb {
+		display: block;
+		aspect-ratio: 1;
+		border-radius: 8px;
+		overflow: hidden;
+		background: var(--color-border, #e5e7eb);
+	}
+
+	.photo-thumb__img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		transition: opacity 0.15s ease;
+	}
+
+	.photo-thumb:hover .photo-thumb__img {
+		opacity: 0.85;
 	}
 
 	/* ── Weather detail ── */

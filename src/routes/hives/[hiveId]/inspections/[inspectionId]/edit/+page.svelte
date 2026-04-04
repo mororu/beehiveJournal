@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import { toDatetimeLocal } from '$lib/client/utils/date.js';
+	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import type { ActionData, PageData } from './$types.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -28,6 +29,7 @@
 
 	<form
 		method="POST"
+		enctype="multipart/form-data"
 		use:enhance={() => {
 			touched = true;
 			isSubmitting = true;
@@ -153,6 +155,9 @@
 				</div>
 			</div>
 		{/if}
+
+		<!-- ── Photos ── -->
+		<PhotoCapture existingPhotoIds={data.photos.map((p) => p.id)} disabled={isSubmitting} />
 
 		<div class="form-actions">
 			<a href="/hives/{data.hive.id}/inspections/{data.inspection.id}" class="btn btn--ghost"
