@@ -22,16 +22,13 @@ COPY . .
 RUN npm run build
 
 # Compile create-user.ts to CJS for use in the runner stage (no tsx available there).
-# The || true allows the build to succeed even if the script doesn't exist yet.
-RUN [ -f scripts/create-user.ts ] && \
-    node_modules/.bin/esbuild scripts/create-user.ts \
+RUN node_modules/.bin/esbuild scripts/create-user.ts \
         --bundle \
         --platform=node \
         --format=cjs \
         --outfile=scripts/create-user.js \
         --external:better-sqlite3 \
-        --external:argon2 \
-    || true
+        --external:argon2
 
 # =============================================================================
 # Stage 2: Runner
