@@ -26,7 +26,7 @@ RUN DATABASE_PATH=/tmp/build.sqlite npm run build
 RUN node_modules/.bin/esbuild scripts/create-user.ts \
         --bundle \
         --platform=node \
-        --format=cjs \
+        --format=esm \
         --outfile=scripts/create-user.js \
         --external:better-sqlite3 \
         --external:argon2
