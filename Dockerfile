@@ -18,8 +18,9 @@ RUN npm ci
 COPY . .
 
 # Build the SvelteKit app using adapter-node.
-# Output goes to the `build/` directory.
-RUN npm run build
+# DATABASE_PATH is set to a temp path so the SvelteKit postbuild analyser can
+# import server modules without crashing — the value is never used at runtime.
+RUN DATABASE_PATH=/tmp/build.sqlite npm run build
 
 # Compile create-user.ts to CJS for use in the runner stage (no tsx available there).
 RUN node_modules/.bin/esbuild scripts/create-user.ts \
