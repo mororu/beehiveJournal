@@ -11,6 +11,8 @@ const config = {
 			out: 'build',
 			// Precompress static assets (gzip + brotli) for faster serving through Nginx
 			precompress: true,
+			// Match the 10MB limit set in nginx client_max_body_size
+			bodySize: 10 * 1024 * 1024,
 		}),
 
 		// Alias for cleaner imports — $lib resolves to src/lib
