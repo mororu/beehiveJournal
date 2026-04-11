@@ -29,6 +29,7 @@
 		<div class="nav-links">
 			<a href="/hives" class="nav-link">Bienenstöcke</a>
 			<a href="/stings" class="nav-link">Stiche</a>
+			<a href="/todos" class="nav-link">Aufgaben</a>
 			<!-- Story 7.4 AC6: shows count of pending offline entries -->
 			<PendingSyncBadge />
 		</div>

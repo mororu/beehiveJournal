@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import HealthBadge from '$lib/components/HealthBadge.svelte';
 	import { formatDate } from '$lib/client/utils/date.js';
 	import type { PageData } from './$types.js';
@@ -57,6 +58,13 @@
 		not_seen: 'Nicht gesehen',
 		cells_present: 'Zellen',
 	};
+
+	// ── Todos ──────────────────────────────────────────────────────────────────
+	let showCompletedTodos = $state(false);
+	const visibleTodos = $derived(
+		showCompletedTodos ? data.todos : data.todos.filter((t) => !t.isCompleted)
+	);
+	const openTodoCount = $derived(data.todos.filter((t) => !t.isCompleted).length);
 </script>
 
 <svelte:head>
@@ -199,6 +207,83 @@
 			{/await}
 		{/if}
 	{/if}
+
+	<!-- ── Todos section ──────────────────────────────────────────────────── -->
+	<section class="todos-section">
+		<div class="todos-header">
+			<h2 class="todos-title">
+				Aufgaben
+				{#if openTodoCount > 0}
+					<span class="todos-count">{openTodoCount}</span>
+				{/if}
+			</h2>
+			<label class="show-completed-label">
+				<input type="checkbox" bind:checked={showCompletedTodos} class="show-completed-cb" />
+				Erledigte anzeigen
+			</label>
+		</div>
+
+		<form method="POST" action="?/createTodo" use:enhance class="todo-add-form">
+			<input
+				type="text"
+				name="title"
+				class="todo-input"
+				placeholder="Neue Aufgabe hinzufügen…"
+				maxlength="200"
+				required
+				aria-label="Aufgabentitel"
+			/>
+			<button type="submit" class="btn btn--ghost btn--sm">Hinzufügen</button>
+		</form>
+
+		{#if visibleTodos.length === 0}
+			<p class="todos-empty">
+				{showCompletedTodos ? 'Keine Aufgaben vorhanden.' : 'Keine offenen Aufgaben.'}
+			</p>
+		{:else}
+			<ul class="todo-list">
+				{#each visibleTodos as todo (todo.id)}
+					<li class="todo-item" class:todo-item--done={todo.isCompleted}>
+						<form method="POST" action="?/toggleTodo" use:enhance style="display:contents">
+							<input type="hidden" name="todoId" value={todo.id} />
+							<button
+								type="submit"
+								class="todo-checkbox"
+								aria-label={todo.isCompleted ? 'Als offen markieren' : 'Als erledigt markieren'}
+								aria-pressed={todo.isCompleted}
+							>
+								{#if todo.isCompleted}
+									<svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+										<path
+											d="M2 7L5.5 10.5L12 3.5"
+											stroke="currentColor"
+											stroke-width="2.5"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										/>
+									</svg>
+								{/if}
+							</button>
+						</form>
+						<span class="todo-title">{todo.title}</span>
+						<form method="POST" action="?/deleteTodo" use:enhance style="display:contents">
+							<input type="hidden" name="todoId" value={todo.id} />
+							<button
+								type="submit"
+								class="todo-delete-btn"
+								aria-label="Aufgabe löschen"
+								onclick={(e) => {
+									if (!confirm('Aufgabe löschen?')) e.preventDefault();
+								}}
+							>
+								×
+							</button>
+						</form>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+	</section>
 </div>
 
 <style>
@@ -502,6 +587,184 @@
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 		line-height: 1.5;
+	}
+
+	/* ── Todos section ── */
+	.todos-section {
+		margin-top: 2.5rem;
+		border-top: 1px solid var(--color-border, #e5e7eb);
+		padding-top: 1.5rem;
+	}
+
+	.todos-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 0.875rem;
+		flex-wrap: wrap;
+	}
+
+	.todos-title {
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: var(--color-text, #1a1a1a);
+		margin: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.todos-count {
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--color-text-muted, #6b7280);
+		background: var(--color-bg, #f3f4f6);
+		padding: 0.15rem 0.5rem;
+		border-radius: 99px;
+	}
+
+	.show-completed-label {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.8rem;
+		color: var(--color-text-muted, #6b7280);
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.show-completed-cb {
+		width: 14px;
+		height: 14px;
+		accent-color: var(--color-accent, #f59e0b);
+		cursor: pointer;
+	}
+
+	.todo-add-form {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 0.875rem;
+	}
+
+	.todo-input {
+		flex: 1;
+		height: 38px;
+		padding: 0 0.75rem;
+		font-size: 0.875rem;
+		color: var(--color-text, #1a1a1a);
+		background: var(--color-input-bg, #ffffff);
+		border: 1.5px solid var(--color-border, #d1d5db);
+		border-radius: 8px;
+		font-family: inherit;
+	}
+
+	.todo-input:focus {
+		outline: none;
+		border-color: var(--color-accent, #f59e0b);
+		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+	}
+
+	.todos-empty {
+		font-size: 0.875rem;
+		color: var(--color-text-muted, #6b7280);
+		margin: 0;
+		padding: 0.75rem 0;
+	}
+
+	.todo-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.todo-item {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.5rem 0.75rem;
+		background: var(--color-surface, #ffffff);
+		border: 1.5px solid var(--color-border, #e5e7eb);
+		border-radius: 8px;
+		transition: border-color 0.15s ease;
+	}
+
+	.todo-item:hover {
+		border-color: var(--color-accent, #f59e0b);
+	}
+
+	.todo-item--done {
+		opacity: 0.5;
+	}
+
+	.todo-checkbox {
+		flex-shrink: 0;
+		width: 20px;
+		height: 20px;
+		border: 2px solid var(--color-border, #d1d5db);
+		border-radius: 5px;
+		background: var(--color-surface, #ffffff);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		padding: 0;
+		transition:
+			border-color 0.15s ease,
+			background-color 0.15s ease;
+		color: #ffffff;
+	}
+
+	.todo-checkbox:hover {
+		border-color: var(--color-accent, #f59e0b);
+	}
+
+	.todo-item--done .todo-checkbox {
+		background: var(--color-accent, #f59e0b);
+		border-color: var(--color-accent, #f59e0b);
+	}
+
+	.todo-title {
+		flex: 1;
+		font-size: 0.875rem;
+		color: var(--color-text, #1a1a1a);
+		line-height: 1.4;
+	}
+
+	.todo-item--done .todo-title {
+		text-decoration: line-through;
+	}
+
+	.todo-delete-btn {
+		flex-shrink: 0;
+		width: 26px;
+		height: 26px;
+		border: none;
+		background: none;
+		color: var(--color-text-muted, #9ca3af);
+		font-size: 1rem;
+		cursor: pointer;
+		border-radius: 5px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		opacity: 0;
+		transition:
+			background-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.todo-item:hover .todo-delete-btn {
+		opacity: 1;
+	}
+
+	.todo-delete-btn:hover {
+		background: #fee2e2;
+		color: #dc2626;
 	}
 
 	/* ── Buttons ── */

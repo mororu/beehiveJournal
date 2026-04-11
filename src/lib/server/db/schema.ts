@@ -90,6 +90,18 @@ export const stingIncidents = sqliteTable(
 	(t) => [uniqueIndex('sting_incidents_client_id_unique').on(t.clientId)]
 );
 
+// ─── Todos ───────────────────────────────────────────────────────────────────
+// Task items linked to a specific hive. Deleted when the hive is deleted (cascade).
+export const todos = sqliteTable('todos', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	hiveId: integer('hive_id')
+		.references(() => hives.id, { onDelete: 'cascade' }),
+	title: text('title').notNull(),
+	isCompleted: integer('is_completed', { mode: 'boolean' }).notNull().default(false),
+	createdAt: integer('created_at').notNull(), // Unix epoch
+	updatedAt: integer('updated_at').notNull(), // Unix epoch
+});
+
 // ─── Inferred Types ──────────────────────────────────────────────────────────
 // Export inferred TypeScript types for use throughout the app.
 // These types are the single source of truth — never define manual interfaces for DB rows.
@@ -103,3 +115,5 @@ export type StingIncident = typeof stingIncidents.$inferSelect;
 export type NewStingIncident = typeof stingIncidents.$inferInsert;
 export type InspectionPhoto = typeof inspectionPhotos.$inferSelect;
 export type NewInspectionPhoto = typeof inspectionPhotos.$inferInsert;
+export type Todo = typeof todos.$inferSelect;
+export type NewTodo = typeof todos.$inferInsert;
