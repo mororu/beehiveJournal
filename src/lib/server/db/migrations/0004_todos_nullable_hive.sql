@@ -1,7 +1,7 @@
 -- SQLite does not support DROP NOT NULL on existing columns,
 -- so we recreate the todos table with hive_id nullable.
-PRAGMA foreign_keys = OFF;
---> statement-breakpoint
+-- Note: no PRAGMA foreign_keys toggle needed here — todos only has a FK
+-- pointing TO hives (not the reverse), so dropping it is safe inside a transaction.
 CREATE TABLE `todos_new` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`hive_id` integer,
@@ -19,5 +19,3 @@ DROP TABLE `todos`;
 ALTER TABLE `todos_new` RENAME TO `todos`;
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS `idx_todos_hive` ON `todos` (`hive_id`);
---> statement-breakpoint
-PRAGMA foreign_keys = ON;
