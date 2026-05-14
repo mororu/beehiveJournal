@@ -27,7 +27,12 @@ export const actions: Actions = {
 
 		// Validate name
 		if (!name) {
-			return fail(400, { error: 'Name des Bienenstocks ist erforderlich', name, numberRaw, description });
+			return fail(400, {
+				error: 'Name des Bienenstocks ist erforderlich',
+				name,
+				numberRaw,
+				description,
+			});
 		}
 
 		// Validate number

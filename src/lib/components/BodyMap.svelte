@@ -3,21 +3,156 @@
 
 	const zones = [
 		{ id: 'head', label: 'Kopf', shape: 'circle' as const, cx: 100, cy: 40, r: 28 },
-		{ id: 'neck', label: 'Hals', shape: 'rect' as const, x: 88, y: 68, width: 24, height: 15, rx: 5 },
-		{ id: 'chest', label: 'Brust', shape: 'rect' as const, x: 60, y: 83, width: 80, height: 68, rx: 6 },
-		{ id: 'abdomen', label: 'Bauch', shape: 'rect' as const, x: 62, y: 151, width: 76, height: 62, rx: 6 },
-		{ id: 'left-arm', label: 'Linker Arm', shape: 'rect' as const, x: 32, y: 83, width: 28, height: 82, rx: 10 },
-		{ id: 'right-arm', label: 'Rechter Arm', shape: 'rect' as const, x: 140, y: 83, width: 28, height: 82, rx: 10 },
-		{ id: 'left-forearm', label: 'Linker Unterarm', shape: 'rect' as const, x: 26, y: 167, width: 26, height: 60, rx: 8 },
-		{ id: 'right-forearm', label: 'Rechter Unterarm', shape: 'rect' as const, x: 148, y: 167, width: 26, height: 60, rx: 8 },
-		{ id: 'left-hand', label: 'Linke Hand', shape: 'rect' as const, x: 20, y: 229, width: 30, height: 26, rx: 7 },
-		{ id: 'right-hand', label: 'Rechte Hand', shape: 'rect' as const, x: 150, y: 229, width: 30, height: 26, rx: 7 },
-		{ id: 'left-thigh', label: 'Linker Oberschenkel', shape: 'rect' as const, x: 62, y: 213, width: 30, height: 78, rx: 8 },
-		{ id: 'right-thigh', label: 'Rechter Oberschenkel', shape: 'rect' as const, x: 108, y: 213, width: 30, height: 78, rx: 8 },
-		{ id: 'left-shin', label: 'Linkes Schienbein', shape: 'rect' as const, x: 62, y: 293, width: 29, height: 68, rx: 8 },
-		{ id: 'right-shin', label: 'Rechtes Schienbein', shape: 'rect' as const, x: 109, y: 293, width: 29, height: 68, rx: 8 },
-		{ id: 'left-foot', label: 'Linker Fuß', shape: 'rect' as const, x: 52, y: 363, width: 38, height: 20, rx: 6 },
-		{ id: 'right-foot', label: 'Rechter Fuß', shape: 'rect' as const, x: 110, y: 363, width: 38, height: 20, rx: 6 },
+		{
+			id: 'neck',
+			label: 'Hals',
+			shape: 'rect' as const,
+			x: 88,
+			y: 68,
+			width: 24,
+			height: 15,
+			rx: 5,
+		},
+		{
+			id: 'chest',
+			label: 'Brust',
+			shape: 'rect' as const,
+			x: 60,
+			y: 83,
+			width: 80,
+			height: 68,
+			rx: 6,
+		},
+		{
+			id: 'abdomen',
+			label: 'Bauch',
+			shape: 'rect' as const,
+			x: 62,
+			y: 151,
+			width: 76,
+			height: 62,
+			rx: 6,
+		},
+		{
+			id: 'left-arm',
+			label: 'Linker Arm',
+			shape: 'rect' as const,
+			x: 32,
+			y: 83,
+			width: 28,
+			height: 82,
+			rx: 10,
+		},
+		{
+			id: 'right-arm',
+			label: 'Rechter Arm',
+			shape: 'rect' as const,
+			x: 140,
+			y: 83,
+			width: 28,
+			height: 82,
+			rx: 10,
+		},
+		{
+			id: 'left-forearm',
+			label: 'Linker Unterarm',
+			shape: 'rect' as const,
+			x: 26,
+			y: 167,
+			width: 26,
+			height: 60,
+			rx: 8,
+		},
+		{
+			id: 'right-forearm',
+			label: 'Rechter Unterarm',
+			shape: 'rect' as const,
+			x: 148,
+			y: 167,
+			width: 26,
+			height: 60,
+			rx: 8,
+		},
+		{
+			id: 'left-hand',
+			label: 'Linke Hand',
+			shape: 'rect' as const,
+			x: 20,
+			y: 229,
+			width: 30,
+			height: 26,
+			rx: 7,
+		},
+		{
+			id: 'right-hand',
+			label: 'Rechte Hand',
+			shape: 'rect' as const,
+			x: 150,
+			y: 229,
+			width: 30,
+			height: 26,
+			rx: 7,
+		},
+		{
+			id: 'left-thigh',
+			label: 'Linker Oberschenkel',
+			shape: 'rect' as const,
+			x: 62,
+			y: 213,
+			width: 30,
+			height: 78,
+			rx: 8,
+		},
+		{
+			id: 'right-thigh',
+			label: 'Rechter Oberschenkel',
+			shape: 'rect' as const,
+			x: 108,
+			y: 213,
+			width: 30,
+			height: 78,
+			rx: 8,
+		},
+		{
+			id: 'left-shin',
+			label: 'Linkes Schienbein',
+			shape: 'rect' as const,
+			x: 62,
+			y: 293,
+			width: 29,
+			height: 68,
+			rx: 8,
+		},
+		{
+			id: 'right-shin',
+			label: 'Rechtes Schienbein',
+			shape: 'rect' as const,
+			x: 109,
+			y: 293,
+			width: 29,
+			height: 68,
+			rx: 8,
+		},
+		{
+			id: 'left-foot',
+			label: 'Linker Fuß',
+			shape: 'rect' as const,
+			x: 52,
+			y: 363,
+			width: 38,
+			height: 20,
+			rx: 6,
+		},
+		{
+			id: 'right-foot',
+			label: 'Rechter Fuß',
+			shape: 'rect' as const,
+			x: 110,
+			y: 363,
+			width: 38,
+			height: 20,
+			rx: 6,
+		},
 	];
 
 	// Text labels shown inside large-enough zones
@@ -41,7 +176,12 @@
 <div class="body-map">
 	<p class="hint">Tippen Sie auf die gestochene Körperstelle</p>
 
-	<svg viewBox="0 0 200 390" class="svg" role="group" aria-label="Körperkarte — Stichlocation wählen">
+	<svg
+		viewBox="0 0 200 390"
+		class="svg"
+		role="group"
+		aria-label="Körperkarte — Stichlocation wählen"
+	>
 		{#each zones as zone (zone.id)}
 			{@const selected = value === zone.label}
 			{#if zone.shape === 'circle'}
@@ -88,8 +228,8 @@
 				text-anchor="middle"
 				dominant-baseline="middle"
 				transform={lbl.rotate ? `rotate(${lbl.rotate}, ${lbl.x}, ${lbl.y})` : undefined}
-				pointer-events="none"
-			>{lbl.text}</text>
+				pointer-events="none">{lbl.text}</text
+			>
 		{/each}
 	</svg>
 

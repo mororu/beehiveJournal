@@ -36,6 +36,7 @@ export const inspections = sqliteTable(
 		inspectedAt: integer('inspected_at').notNull(), // Unix epoch; defaults to creation time on client
 		healthScore: integer('health_score').notNull(), // 1–5 integer scale
 		queenStatus: text('queen_status').notNull(), // 'seen' | 'not_seen' | 'cells_present'
+		fluglochBeobachtung: text('flugloch_beobachtung'), // 'keine'|'wenig'|'mittel'|'hoch'|'sehr_hoch'; nullable
 		behaviourNotes: text('behaviour_notes'), // free text; nullable; max 2000 chars enforced in app layer
 		nextInspectNote: text('next_inspect_note'), // reminder for next visit; nullable; max 1000 chars
 
@@ -94,8 +95,7 @@ export const stingIncidents = sqliteTable(
 // Task items linked to a specific hive. Deleted when the hive is deleted (cascade).
 export const todos = sqliteTable('todos', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	hiveId: integer('hive_id')
-		.references(() => hives.id, { onDelete: 'cascade' }),
+	hiveId: integer('hive_id').references(() => hives.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
 	isCompleted: integer('is_completed', { mode: 'boolean' }).notNull().default(false),
 	createdAt: integer('created_at').notNull(), // Unix epoch

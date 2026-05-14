@@ -19,6 +19,7 @@ export interface OutboxEntry {
 	inspectedAt: number; // Unix epoch seconds
 	healthScore: number;
 	queenStatus: string;
+	fluglochBeobachtung?: string | null; // optional — old IDB entries may lack this field (undefined → JSON.stringify omits it → server stores null)
 	behaviourNotes: string | null;
 	nextInspectNote: string | null;
 	weatherTemp: number | null;

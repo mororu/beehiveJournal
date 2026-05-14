@@ -12,6 +12,7 @@
 	// ── Form state ─────────────────────────────────────────────────────────────
 	let healthScore = $state<number | null>(null);
 	let queenStatus = $state<string | null>(null);
+	let fluglochBeobachtung = $state<string>('');
 	let isSubmitting = $state(false);
 	let touched = $state(false);
 	// Story 7.4 AC4: shown after a successful offline save
@@ -150,6 +151,7 @@
 					inspectedAt,
 					healthScore: healthScore!,
 					queenStatus: queenStatus!,
+					fluglochBeobachtung: fluglochBeobachtung || null,
 					behaviourNotes: (formData.get('behaviourNotes') as string | null)?.trim() || null,
 					nextInspectNote: (formData.get('nextInspectNote') as string | null)?.trim() || null,
 					// Story 7.4 AC5: weather is unavailable when offline
@@ -257,6 +259,27 @@
 			{#if queenStatus !== null}
 				<input type="hidden" name="queenStatus" value={queenStatus} />
 			{/if}
+		</div>
+
+		<!-- ── Fluglochbeobachtung ─────────────────────────────────────────────── -->
+		<div class="field">
+			<label class="field-label" for="fluglochBeobachtung">
+				Fluglochbeobachtung <span class="field-hint">(optional)</span>
+			</label>
+			<select
+				class="field-input field-input--select"
+				id="fluglochBeobachtung"
+				name="fluglochBeobachtung"
+				bind:value={fluglochBeobachtung}
+				disabled={isSubmitting}
+			>
+				<option value="">— Keine Angabe —</option>
+				<option value="keine">Keine</option>
+				<option value="wenig">Wenig</option>
+				<option value="mittel">Mittel</option>
+				<option value="hoch">Hoch</option>
+				<option value="sehr_hoch">Sehr Hoch</option>
+			</select>
 		</div>
 
 		<!-- ── Inspection Date/Time ────────────────────────────────────────── -->
@@ -473,6 +496,16 @@
 	.field-input:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
+	}
+
+	.field-input--select {
+		appearance: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 0.875rem center;
+		background-size: 12px 8px;
+		padding-right: 2.5rem;
+		cursor: pointer;
 	}
 
 	.field-input--textarea {

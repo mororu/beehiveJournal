@@ -40,6 +40,7 @@ export async function syncOutbox(): Promise<void> {
 						inspectedAt: entry.inspectedAt,
 						healthScore: entry.healthScore,
 						queenStatus: entry.queenStatus,
+						fluglochBeobachtung: entry.fluglochBeobachtung,
 						behaviourNotes: entry.behaviourNotes,
 						nextInspectNote: entry.nextInspectNote,
 						weatherTemp: entry.weatherTemp,

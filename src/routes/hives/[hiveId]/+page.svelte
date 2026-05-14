@@ -159,7 +159,9 @@
 	{#if activeTab === 'list'}
 		{#if data.inspections.length === 0}
 			<div class="empty-state">
-				<p>Noch keine Kontrollen — tippen Sie auf <strong>Neue Kontrolle</strong> um zu beginnen.</p>
+				<p>
+					Noch keine Kontrollen — tippen Sie auf <strong>Neue Kontrolle</strong> um zu beginnen.
+				</p>
 			</div>
 		{:else if filteredInspections.length === 0}
 			<div class="empty-state">

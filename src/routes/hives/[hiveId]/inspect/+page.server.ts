@@ -16,6 +16,10 @@ import type { Actions, PageServerLoad } from './$types.js';
 const VALID_QUEEN_STATUSES = ['seen', 'not_seen', 'cells_present'] as const;
 type QueenStatus = (typeof VALID_QUEEN_STATUSES)[number];
 
+// Keep in sync with VALID_FLUGLOCH_STATUSES in api/hives/[hiveId]/inspections/+server.ts
+const VALID_FLUGLOCH_STATUSES = ['keine', 'wenig', 'mittel', 'hoch', 'sehr_hoch'] as const;
+type FluglochStatus = (typeof VALID_FLUGLOCH_STATUSES)[number];
+
 export const load: PageServerLoad = ({ params }) => {
 	const id = parseInt(params.hiveId, 10);
 	if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
@@ -62,6 +66,14 @@ export const actions: Actions = {
 		const behaviourNotes = (data.get('behaviourNotes') as string | null)?.trim() || null;
 		const nextInspectNote = (data.get('nextInspectNote') as string | null)?.trim() || null;
 
+		const fluglochBeobachtungRaw =
+			(data.get('fluglochBeobachtung') as string | null)?.trim() || null;
+		const fluglochBeobachtung =
+			fluglochBeobachtungRaw &&
+			VALID_FLUGLOCH_STATUSES.includes(fluglochBeobachtungRaw as FluglochStatus)
+				? fluglochBeobachtungRaw
+				: null;
+
 		// ── Weather fields (sent as hidden inputs by the client) ─────────────
 		const weatherUnavailable = data.get('weatherUnavailable') === 'true';
 		const weatherTempRaw = data.get('weatherTemp') as string | null;
@@ -75,6 +87,7 @@ export const actions: Actions = {
 			inspectedAt,
 			healthScore,
 			queenStatus,
+			fluglochBeobachtung,
 			behaviourNotes,
 			nextInspectNote,
 			weatherUnavailable,

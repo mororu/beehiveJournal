@@ -105,7 +105,9 @@
 							{#if sting.hiveName}
 								<span class="sting-card__hive">{sting.hiveName}</span>
 							{:else}
-								<span class="sting-card__hive sting-card__hive--unknown">Unbekannter Bienenstock</span>
+								<span class="sting-card__hive sting-card__hive--unknown"
+									>Unbekannter Bienenstock</span
+								>
 							{/if}
 						</div>
 						<button

@@ -21,7 +21,8 @@
 <dialog open={archiveDialogOpen || undefined} class="dialog" aria-labelledby="archive-dialog-title">
 	<h2 id="archive-dialog-title" class="dialog__title">{data.hive.name} archivieren?</h2>
 	<p class="dialog__body">
-		Er wird aus der aktiven Liste ausgeblendet, aber alle Kontrolldaten werden gespeichert. Sie können ihn später wiederherstellen.
+		Er wird aus der aktiven Liste ausgeblendet, aber alle Kontrolldaten werden gespeichert. Sie
+		können ihn später wiederherstellen.
 	</p>
 	<div class="dialog__actions">
 		<button class="btn btn--ghost" type="button" onclick={() => (archiveDialogOpen = false)}>
@@ -39,7 +40,8 @@
 	<p class="dialog__body">
 		Dies löscht dauerhaft <strong>{data.hive.name}</strong> und alle
 		<strong>{data.inspectionCount}</strong>
-		{data.inspectionCount === 1 ? 'Kontrolle' : 'Kontrollen'} dauerhaft. Dies kann nicht rückgängig gemacht werden.
+		{data.inspectionCount === 1 ? 'Kontrolle' : 'Kontrollen'} dauerhaft. Dies kann nicht rückgängig gemacht
+		werden.
 	</p>
 	<p class="dialog__body">
 		Geben Sie <strong>{data.hive.name}</strong> zur Bestätigung ein:
@@ -210,7 +212,8 @@
 				<strong>Diesen Bienenstock löschen</strong>
 				<span>
 					Diesen Bienenstock und alle {data.inspectionCount}
-					{data.inspectionCount === 1 ? 'Kontrolle' : 'Kontrollen'} dauerhaft löschen. Kann nicht rückgängig gemacht werden.
+					{data.inspectionCount === 1 ? 'Kontrolle' : 'Kontrollen'} dauerhaft löschen. Kann nicht rückgängig
+					gemacht werden.
 				</span>
 			</div>
 			<button

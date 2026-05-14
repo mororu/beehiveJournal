@@ -19,7 +19,8 @@
 
 	{#if data.atLimit}
 		<div class="alert alert--warning">
-			Sie haben die maximale Anzahl von 10 aktiven Bienenstöcken erreicht. Archivieren Sie einen vorhandenen Bienenstock, bevor Sie einen neuen hinzufügen.
+			Sie haben die maximale Anzahl von 10 aktiven Bienenstöcken erreicht. Archivieren Sie einen
+			vorhandenen Bienenstock, bevor Sie einen neuen hinzufügen.
 		</div>
 	{:else}
 		<form

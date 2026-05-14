@@ -14,6 +14,10 @@ import type { RequestHandler } from './$types.js';
 const VALID_QUEEN_STATUSES = ['seen', 'not_seen', 'cells_present'] as const;
 type QueenStatus = (typeof VALID_QUEEN_STATUSES)[number];
 
+// Keep in sync with VALID_FLUGLOCH_STATUSES in +page.server.ts (same route)
+const VALID_FLUGLOCH_STATUSES = ['keine', 'wenig', 'mittel', 'hoch', 'sehr_hoch'] as const;
+type FluglochStatus = (typeof VALID_FLUGLOCH_STATUSES)[number];
+
 export const GET: RequestHandler = ({ params, url }) => {
 	const hiveId = parseInt(params.hiveId, 10);
 	if (isNaN(hiveId)) error(400, { message: 'Invalid hive ID' });
@@ -66,6 +70,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		error(400, { message: 'queenStatus must be seen, not_seen, or cells_present' });
 	}
 
+	const fluglochBeobachtung =
+		typeof b.fluglochBeobachtung === 'string' &&
+		VALID_FLUGLOCH_STATUSES.includes(b.fluglochBeobachtung as FluglochStatus)
+			? b.fluglochBeobachtung
+			: null;
+
 	const inspectedAt =
 		b.inspectedAt !== undefined ? Math.floor(Number(b.inspectedAt)) : Math.floor(Date.now() / 1000);
 
@@ -74,6 +84,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		inspectedAt,
 		healthScore,
 		queenStatus,
+		fluglochBeobachtung,
 		behaviourNotes: typeof b.behaviourNotes === 'string' ? b.behaviourNotes || null : null,
 		nextInspectNote: typeof b.nextInspectNote === 'string' ? b.nextInspectNote || null : null,
 		weatherTemp: b.weatherTemp != null ? Number(b.weatherTemp) : null,

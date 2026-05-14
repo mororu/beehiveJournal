@@ -71,6 +71,7 @@ export function createInspection(data: {
 	inspectedAt: number;
 	healthScore: number;
 	queenStatus: string;
+	fluglochBeobachtung?: string | null;
 	behaviourNotes?: string | null;
 	nextInspectNote?: string | null;
 	weatherTemp?: number | null;
@@ -90,6 +91,7 @@ export function createInspection(data: {
 			inspectedAt: data.inspectedAt,
 			healthScore: data.healthScore,
 			queenStatus: data.queenStatus,
+			fluglochBeobachtung: data.fluglochBeobachtung ?? null,
 			behaviourNotes: data.behaviourNotes ?? null,
 			nextInspectNote: data.nextInspectNote ?? null,
 			weatherTemp: data.weatherTemp ?? null,
@@ -116,7 +118,12 @@ export function updateInspection(
 	data: Partial<
 		Pick<
 			Inspection,
-			'inspectedAt' | 'healthScore' | 'queenStatus' | 'behaviourNotes' | 'nextInspectNote'
+			| 'inspectedAt'
+			| 'healthScore'
+			| 'queenStatus'
+			| 'fluglochBeobachtung'
+			| 'behaviourNotes'
+			| 'nextInspectNote'
 		>
 	>
 ): Inspection | null {

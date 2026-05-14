@@ -13,7 +13,12 @@
 
 		const map = new Map<
 			number,
-			{ hiveId: number | null; hiveName: string | null; hiveNumber: number | null; items: typeof visible }
+			{
+				hiveId: number | null;
+				hiveName: string | null;
+				hiveNumber: number | null;
+				items: typeof visible;
+			}
 		>();
 
 		for (const todo of visible) {
@@ -31,9 +36,7 @@
 
 		// Put general group first, then hive groups
 		const general = map.get(GENERAL_KEY);
-		const hiveGroups = [...map.entries()]
-			.filter(([k]) => k !== GENERAL_KEY)
-			.map(([, v]) => v);
+		const hiveGroups = [...map.entries()].filter(([k]) => k !== GENERAL_KEY).map(([, v]) => v);
 		return general ? [general, ...hiveGroups] : hiveGroups;
 	});
 

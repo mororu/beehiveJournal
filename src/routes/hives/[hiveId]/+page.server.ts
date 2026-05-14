@@ -3,7 +3,12 @@
 import { error, redirect } from '@sveltejs/kit';
 import { getHiveById } from '$lib/server/db/queries/hives.js';
 import { getInspectionsByHiveId } from '$lib/server/db/queries/inspections.js';
-import { getTodosByHiveId, createTodo, toggleTodo, deleteTodo } from '$lib/server/db/queries/todos.js';
+import {
+	getTodosByHiveId,
+	createTodo,
+	toggleTodo,
+	deleteTodo,
+} from '$lib/server/db/queries/todos.js';
 import type { Actions, PageServerLoad } from './$types.js';
 
 export const load: PageServerLoad = ({ params, url }) => {
