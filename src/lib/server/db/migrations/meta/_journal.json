@@ -43,6 +43,13 @@
       "when": 1778762427679,
       "tag": "0005_parched_justin_hammer",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1778763455308,
+      "tag": "0006_known_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

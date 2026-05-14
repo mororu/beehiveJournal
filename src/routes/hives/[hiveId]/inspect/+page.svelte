@@ -13,6 +13,7 @@
 	let healthScore = $state<number | null>(null);
 	let queenStatus = $state<string | null>(null);
 	let fluglochBeobachtung = $state<string>('');
+	let verhalten = $state<string>('');
 	let isSubmitting = $state(false);
 	let touched = $state(false);
 	// Story 7.4 AC4: shown after a successful offline save
@@ -152,6 +153,7 @@
 					healthScore: healthScore!,
 					queenStatus: queenStatus!,
 					fluglochBeobachtung: fluglochBeobachtung || null,
+					verhalten: verhalten || null,
 					behaviourNotes: (formData.get('behaviourNotes') as string | null)?.trim() || null,
 					nextInspectNote: (formData.get('nextInspectNote') as string | null)?.trim() || null,
 					// Story 7.4 AC5: weather is unavailable when offline
@@ -279,6 +281,25 @@
 				<option value="mittel">Mittel</option>
 				<option value="hoch">Hoch</option>
 				<option value="sehr_hoch">Sehr Hoch</option>
+			</select>
+		</div>
+
+		<!-- ── Verhalten ──────────────────────────────────────────────────────────── -->
+		<div class="field">
+			<label class="field-label" for="verhalten">
+				Verhalten <span class="field-hint">(optional)</span>
+			</label>
+			<select
+				class="field-input field-input--select"
+				id="verhalten"
+				name="verhalten"
+				bind:value={verhalten}
+				disabled={isSubmitting}
+			>
+				<option value="">— Keine Angabe —</option>
+				<option value="ruhig">Ruhig</option>
+				<option value="aufbrausend">Aufbrausend</option>
+				<option value="aggressiv">Aggressiv</option>
 			</select>
 		</div>
 

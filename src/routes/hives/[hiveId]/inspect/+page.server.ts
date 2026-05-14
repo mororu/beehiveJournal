@@ -20,6 +20,10 @@ type QueenStatus = (typeof VALID_QUEEN_STATUSES)[number];
 const VALID_FLUGLOCH_STATUSES = ['keine', 'wenig', 'mittel', 'hoch', 'sehr_hoch'] as const;
 type FluglochStatus = (typeof VALID_FLUGLOCH_STATUSES)[number];
 
+// Keep in sync with VALID_VERHALTEN_VALUES in api/hives/[hiveId]/inspections/+server.ts
+const VALID_VERHALTEN_VALUES = ['ruhig', 'aufbrausend', 'aggressiv'] as const;
+type VerhaltenValue = (typeof VALID_VERHALTEN_VALUES)[number];
+
 export const load: PageServerLoad = ({ params }) => {
 	const id = parseInt(params.hiveId, 10);
 	if (isNaN(id)) error(404, 'Bienenstock nicht gefunden');
@@ -74,6 +78,12 @@ export const actions: Actions = {
 				? fluglochBeobachtungRaw
 				: null;
 
+		const verhaltenRaw = (data.get('verhalten') as string | null)?.trim() || null;
+		const verhalten =
+			verhaltenRaw && VALID_VERHALTEN_VALUES.includes(verhaltenRaw as VerhaltenValue)
+				? verhaltenRaw
+				: null;
+
 		// ── Weather fields (sent as hidden inputs by the client) ─────────────
 		const weatherUnavailable = data.get('weatherUnavailable') === 'true';
 		const weatherTempRaw = data.get('weatherTemp') as string | null;
@@ -88,6 +98,7 @@ export const actions: Actions = {
 			healthScore,
 			queenStatus,
 			fluglochBeobachtung,
+			verhalten,
 			behaviourNotes,
 			nextInspectNote,
 			weatherUnavailable,

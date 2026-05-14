@@ -37,6 +37,7 @@ export const inspections = sqliteTable(
 		healthScore: integer('health_score').notNull(), // 1–5 integer scale
 		queenStatus: text('queen_status').notNull(), // 'seen' | 'not_seen' | 'cells_present'
 		fluglochBeobachtung: text('flugloch_beobachtung'), // 'keine'|'wenig'|'mittel'|'hoch'|'sehr_hoch'; nullable
+		verhalten: text('verhalten'), // 'ruhig'|'aufbrausend'|'aggressiv'; nullable
 		behaviourNotes: text('behaviour_notes'), // free text; nullable; max 2000 chars enforced in app layer
 		nextInspectNote: text('next_inspect_note'), // reminder for next visit; nullable; max 1000 chars
 

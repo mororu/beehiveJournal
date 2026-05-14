@@ -72,6 +72,7 @@ export function createInspection(data: {
 	healthScore: number;
 	queenStatus: string;
 	fluglochBeobachtung?: string | null;
+	verhalten?: string | null;
 	behaviourNotes?: string | null;
 	nextInspectNote?: string | null;
 	weatherTemp?: number | null;
@@ -92,6 +93,7 @@ export function createInspection(data: {
 			healthScore: data.healthScore,
 			queenStatus: data.queenStatus,
 			fluglochBeobachtung: data.fluglochBeobachtung ?? null,
+			verhalten: data.verhalten ?? null,
 			behaviourNotes: data.behaviourNotes ?? null,
 			nextInspectNote: data.nextInspectNote ?? null,
 			weatherTemp: data.weatherTemp ?? null,
@@ -122,6 +124,7 @@ export function updateInspection(
 			| 'healthScore'
 			| 'queenStatus'
 			| 'fluglochBeobachtung'
+			| 'verhalten'
 			| 'behaviourNotes'
 			| 'nextInspectNote'
 		>

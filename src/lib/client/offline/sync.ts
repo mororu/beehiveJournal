@@ -41,6 +41,7 @@ export async function syncOutbox(): Promise<void> {
 						healthScore: entry.healthScore,
 						queenStatus: entry.queenStatus,
 						fluglochBeobachtung: entry.fluglochBeobachtung,
+						verhalten: entry.verhalten ?? null,
 						behaviourNotes: entry.behaviourNotes,
 						nextInspectNote: entry.nextInspectNote,
 						weatherTemp: entry.weatherTemp,

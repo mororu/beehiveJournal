@@ -18,6 +18,10 @@ type QueenStatus = (typeof VALID_QUEEN_STATUSES)[number];
 const VALID_FLUGLOCH_STATUSES = ['keine', 'wenig', 'mittel', 'hoch', 'sehr_hoch'] as const;
 type FluglochStatus = (typeof VALID_FLUGLOCH_STATUSES)[number];
 
+// Keep in sync with VALID_VERHALTEN_VALUES in +page.server.ts (same route)
+const VALID_VERHALTEN_VALUES = ['ruhig', 'aufbrausend', 'aggressiv'] as const;
+type VerhaltenValue = (typeof VALID_VERHALTEN_VALUES)[number];
+
 export const GET: RequestHandler = ({ params, url }) => {
 	const hiveId = parseInt(params.hiveId, 10);
 	if (isNaN(hiveId)) error(400, { message: 'Invalid hive ID' });
@@ -76,6 +80,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			? b.fluglochBeobachtung
 			: null;
 
+	const verhalten =
+		typeof b.verhalten === 'string' &&
+		VALID_VERHALTEN_VALUES.includes(b.verhalten as VerhaltenValue)
+			? b.verhalten
+			: null;
+
 	const inspectedAt =
 		b.inspectedAt !== undefined ? Math.floor(Number(b.inspectedAt)) : Math.floor(Date.now() / 1000);
 
@@ -85,6 +95,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		healthScore,
 		queenStatus,
 		fluglochBeobachtung,
+		verhalten,
 		behaviourNotes: typeof b.behaviourNotes === 'string' ? b.behaviourNotes || null : null,
 		nextInspectNote: typeof b.nextInspectNote === 'string' ? b.nextInspectNote || null : null,
 		weatherTemp: b.weatherTemp != null ? Number(b.weatherTemp) : null,
