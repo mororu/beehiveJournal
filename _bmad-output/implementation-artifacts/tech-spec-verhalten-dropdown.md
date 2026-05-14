@@ -45,8 +45,10 @@ Neues optionales `text`-Feld `verhalten` in der DB-Tabelle `inspections` plus ei
 
 **Out of Scope:**
 - Edit-Formular (`/inspections/[inspectionId]/edit`)
-- Detailansicht (`/inspections/[inspectionId]`)
 - Listansicht / Hive-Übersicht
+
+**Added after initial completion:**
+- Detailansicht (`/inspections/[inspectionId]`): `verhalten`-Wert als `detail-row` in der Core-Fields-Card anzeigen (nur wenn nicht null)
 
 ---
 

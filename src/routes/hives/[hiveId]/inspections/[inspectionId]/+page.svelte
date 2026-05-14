@@ -13,6 +13,13 @@
 		cells_present: 'Zellen vorhanden',
 	};
 
+	// ── Verhalten display ─────────────────────────────────────────────────────
+	const verhaltenLabels: Record<string, string> = {
+		ruhig: 'Ruhig',
+		aufbrausend: 'Aufbrausend',
+		aggressiv: 'Aggressiv',
+	};
+
 	// ── Delete dialog ─────────────────────────────────────────────────────────
 	let deleteDialogOpen = $state(false);
 	let isDeleting = $state(false);
@@ -100,6 +107,15 @@
 				{queenLabels[data.inspection.queenStatus] ?? data.inspection.queenStatus}
 			</span>
 		</div>
+
+		{#if data.inspection.verhalten}
+			<div class="detail-row">
+				<span class="detail-label">Verhalten</span>
+				<span class="detail-value">
+					{verhaltenLabels[data.inspection.verhalten] ?? data.inspection.verhalten}
+				</span>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Next inspection note (most important — shown prominently) -->
