@@ -173,6 +173,14 @@
 		margin-bottom: 1.25rem;
 	}
 
+	@media (max-width: 640px) {
+		.page-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.75rem;
+		}
+	}
+
 	h1 {
 		font-size: 1.5rem;
 		font-weight: 700;

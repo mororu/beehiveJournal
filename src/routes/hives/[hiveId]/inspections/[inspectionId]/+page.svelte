@@ -13,6 +13,15 @@
 		cells_present: 'Zellen vorhanden',
 	};
 
+	// ── Fluglochbeobachtung display ───────────────────────────────────────────
+	const fluglochLabels: Record<string, string> = {
+		keine: 'Keine',
+		wenig: 'Wenig',
+		mittel: 'Mittel',
+		hoch: 'Hoch',
+		sehr_hoch: 'Sehr hoch',
+	};
+
 	// ── Verhalten display ─────────────────────────────────────────────────────
 	const verhaltenLabels: Record<string, string> = {
 		ruhig: 'Ruhig',
@@ -108,7 +117,17 @@
 			</span>
 		</div>
 
-		{#if data.inspection.verhalten}
+		{#if data.inspection.fluglochBeobachtung != null}
+			<div class="detail-row">
+				<span class="detail-label">Fluglochbeobachtung</span>
+				<span class="detail-value">
+					{fluglochLabels[data.inspection.fluglochBeobachtung] ??
+						data.inspection.fluglochBeobachtung}
+				</span>
+			</div>
+		{/if}
+
+		{#if data.inspection.verhalten != null}
 			<div class="detail-row">
 				<span class="detail-label">Verhalten</span>
 				<span class="detail-value">

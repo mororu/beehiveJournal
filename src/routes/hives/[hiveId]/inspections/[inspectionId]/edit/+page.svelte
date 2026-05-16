@@ -84,7 +84,7 @@
 				<span class="inline-error" role="alert">Bitte Königinnenstatus auswählen</span>
 			{/if}
 			<div class="queen-row" role="group" aria-label="Queen status">
-				{#each [{ value: 'seen', label: 'Gesehen' }, { value: 'not_seen', label: 'Nicht gesehen' }, { value: 'cells_present', label: 'Zellen vorhanden' }] as opt (opt.value)}
+				{#each [{ value: 'seen', label: 'Gesehen' }, { value: 'not_seen', label: 'Nicht gesehen' }, { value: 'cells_present', label: 'Zellen' }] as opt (opt.value)}
 					<button
 						class="queen-btn"
 						class:queen-btn--selected={queenStatus === opt.value}
@@ -323,8 +323,8 @@
 	.queen-btn {
 		flex: 1;
 		min-width: 0;
-		height: 48px;
-		padding: 0 0.5rem;
+		min-height: 48px;
+		padding: 0.25rem 0.5rem;
 		font-size: 0.875rem;
 		font-weight: 600;
 		border: 2px solid var(--color-border, #d1d5db);
@@ -334,7 +334,6 @@
 		cursor: pointer;
 		transition: all 0.15s ease;
 		font-family: inherit;
-		white-space: nowrap;
 	}
 
 	.queen-btn:hover {
