@@ -50,6 +50,13 @@
       "when": 1778763455308,
       "tag": "0006_known_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1778937277755,
+      "tag": "0007_whole_revanche",
+      "breakpoints": true
     }
   ]
 }

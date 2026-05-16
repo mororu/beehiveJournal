@@ -6,7 +6,14 @@
 
 import { browser } from '$app/environment';
 import { invalidateAll } from '$app/navigation';
-import { getAllOutboxEntries, removeFromOutbox, updateOutboxEntry } from './db.js';
+import {
+	getAllOutboxEntries,
+	removeFromOutbox,
+	updateOutboxEntry,
+	getAllHarvestsOutboxEntries,
+	removeFromHarvestsOutbox,
+	updateHarvestsOutboxEntry,
+} from './db.js';
 import { pendingSync } from '$lib/client/stores/pendingSync.js';
 
 let syncInProgress = false;
@@ -27,7 +34,9 @@ export async function syncOutbox(): Promise<void> {
 
 	try {
 		const entries = await getAllOutboxEntries();
-		if (entries.length === 0) return;
+		const harvestEntries = await getAllHarvestsOutboxEntries();
+
+		if (entries.length === 0 && harvestEntries.length === 0) return;
 
 		let synced = 0;
 
@@ -66,6 +75,30 @@ export async function syncOutbox(): Promise<void> {
 			} catch {
 				// Network error — entry stays pending, retries on next sync trigger
 				await updateOutboxEntry(entry.clientId, { syncStatus: 'error' });
+			}
+		}
+
+		for (const entry of harvestEntries) {
+			try {
+				const res = await fetch('/api/harvests', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						hiveId: entry.hiveId,
+						harvestedAt: entry.harvestedAt,
+						amountKg: entry.amountKg,
+						notes: entry.notes,
+						clientId: entry.clientId,
+					}),
+				});
+				if (res.ok || res.status === 409) {
+					await removeFromHarvestsOutbox(entry.clientId);
+					synced++;
+				} else {
+					await updateHarvestsOutboxEntry(entry.clientId, { syncStatus: 'error' });
+				}
+			} catch {
+				await updateHarvestsOutboxEntry(entry.clientId, { syncStatus: 'error' });
 			}
 		}
 

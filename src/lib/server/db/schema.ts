@@ -92,6 +92,26 @@ export const stingIncidents = sqliteTable(
 	(t) => [uniqueIndex('sting_incidents_client_id_unique').on(t.clientId)]
 );
 
+// ─── Honey Harvests ──────────────────────────────────────────────────────────
+// Log of honey harvests per hive. Supports offline deduplication via clientId.
+// hive_id is required and cascades on delete — harvests are part of the hive lifecycle.
+export const honeyHarvests = sqliteTable(
+	'honey_harvests',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		hiveId: integer('hive_id')
+			.notNull()
+			.references(() => hives.id, { onDelete: 'cascade' }),
+		harvestedAt: integer('harvested_at').notNull(), // Unix epoch seconds
+		amountKg: real('amount_kg').notNull(), // decimal kg, e.g. 11.4
+		notes: text('notes'), // optional free text
+		clientId: text('client_id'), // UUID v4 for offline dedup; nullable
+		createdAt: integer('created_at').notNull(), // Unix epoch
+		updatedAt: integer('updated_at').notNull(), // Unix epoch; reserved for future edit support
+	},
+	(t) => [uniqueIndex('honey_harvests_client_id_unique').on(t.clientId)]
+);
+
 // ─── Todos ───────────────────────────────────────────────────────────────────
 // Task items linked to a specific hive. Deleted when the hive is deleted (cascade).
 export const todos = sqliteTable('todos', {
@@ -118,3 +138,5 @@ export type InspectionPhoto = typeof inspectionPhotos.$inferSelect;
 export type NewInspectionPhoto = typeof inspectionPhotos.$inferInsert;
 export type Todo = typeof todos.$inferSelect;
 export type NewTodo = typeof todos.$inferInsert;
+export type HoneyHarvest = typeof honeyHarvests.$inferSelect;
+export type NewHoneyHarvest = typeof honeyHarvests.$inferInsert;

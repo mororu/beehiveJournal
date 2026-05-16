@@ -5,7 +5,7 @@
 
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
-import { getOutboxCount } from '$lib/client/offline/db.js';
+import { getOutboxCount, getHarvestsOutboxCount } from '$lib/client/offline/db.js';
 
 function createPendingSyncStore() {
 	const { subscribe, set } = writable<number>(0);
@@ -13,8 +13,11 @@ function createPendingSyncStore() {
 	async function refresh() {
 		if (!browser) return;
 		try {
-			const count = await getOutboxCount();
-			set(count);
+			const [inspCount, harvestCount] = await Promise.all([
+				getOutboxCount(),
+				getHarvestsOutboxCount(),
+			]);
+			set(inspCount + harvestCount);
 		} catch {
 			// IndexedDB unavailable (e.g. private browsing in some browsers) — fail silently
 			set(0);
