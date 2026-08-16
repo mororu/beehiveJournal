@@ -44,3 +44,6 @@ npm-debug.log*
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Local screenshots / design references — not part of the app
+screens/
