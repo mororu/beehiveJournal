@@ -64,10 +64,18 @@ _This file contains critical rules and patterns that AI agents must follow when 
 **SvelteKit Route Conventions:**
 - **Strict route file separation** — form actions go in `+page.server.ts` only;
   JSON API handlers go in `+server.ts` only. Never mix them.
-- **Auth guard is root-only** — `src/routes/+layout.server.ts` guards all routes.
-  Individual page `load` functions access `event.locals.user` (never re-verify the
-  cookie themselves). `locals.user` type is `{ userId: number; username: string } | null`
-  as declared in `src/app.d.ts`.
+- **Auth guard is root-only** — `src/routes/+layout.server.ts` guards all routes
+  and redirects unauthenticated requests to `/login`. `locals.user` type is
+  `{ userId: number; username: string } | null` as declared in `src/app.d.ts`.
+- **Do NOT rely on `locals.user` inside page loads or form actions** — there is no
+  `hooks.server.ts` in this project, so `locals.user` is only assigned by the root
+  layout `load`. SvelteKit runs layout and page `load` functions **in parallel**, and
+  form actions run **before** any `load`, so `locals.user` is frequently `undefined`
+  and dereferencing it throws a 500. When a route needs the current user, call
+  `await getSessionUser(cookies)` from `$lib/server/auth.js` directly (see
+  `src/routes/settings/+page.server.ts` and `src/routes/login/+page.server.ts`).
+  Adding a `handle` hook to populate `locals` centrally would make the original
+  rule safe — until then, read the cookie.
 - **`/login` and `/logout` are excluded from the guard** — the layout server
   explicitly checks `url.pathname` before running auth. New public routes must be
   added to that check.
@@ -166,7 +174,12 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - **DB commands** — `npm run db:generate` (after schema changes), `npm run db:migrate`
   (apply pending migrations), `npm run db:studio` (Drizzle Studio GUI).
 - **User creation** — `npm run create-user -- <username> <password>` (runs
-  `scripts/create-user.ts` via tsx).
+  `scripts/create-user.ts` via tsx). Refuses to overwrite an existing user.
+- **Password reset** — `npm run reset-password -- <username> <newpassword>` for the
+  locked-out case; requires the user to already exist. Logged-in users can change
+  their password at `/settings` instead. Argon2 parameters and the password policy
+  live in `src/lib/server/password.ts` — never call `argon2` directly, and never
+  import `$app/*` into that module so CLI scripts can keep using it.
 
 **Git Conventions (from commit history):**
 - **Conventional commits** — `feat:`, `fix:`, `chore:`, `refactor:` prefixes.
@@ -180,8 +193,12 @@ _This file contains critical rules and patterns that AI agents must follow when 
   publicly exposed (no published ports on the `app` service).
 - **Backups** — `scripts/backup.sh` runs via cron on the VPS host at 02:00 daily.
   Uses SQLite `.backup` command (WAL-safe). Keeps 30 days of backups.
-- **Body size limit** — set via `BODY_SIZE_LIMIT=10MB` environment variable
-  (runtime config, not build config) to support photo uploads.
+- **Body size limit** — set via `BODY_SIZE_LIMIT` environment variable in
+  `docker-compose.yml` (runtime config, not build config) **and**
+  `client_max_body_size` in `nginx/conf.d/app.conf`. Both are currently 60 MB to
+  accommodate inspection photo uploads (5 photos x 10 MB + multipart overhead).
+  **Change them together** — nginx must never accept a body larger than the app
+  will, and raising only one silently breaks multi-photo uploads with a 413.
 - **Runbook** — `docs/runbook.md` covers full deploy, update, and recovery
   procedures. Update it when deployment procedures change.
 

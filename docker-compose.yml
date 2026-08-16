@@ -25,7 +25,9 @@ services:
       - DATABASE_PATH=/data/db.sqlite
       - JWT_SECRET=${JWT_SECRET}
       - PORT=3000
-      - BODY_SIZE_LIMIT=10485760
+      # Inspection photos: max 5 per request x 10 MB each, plus multipart
+      # overhead. Must stay >= nginx client_max_body_size in nginx/conf.d/app.conf.
+      - BODY_SIZE_LIMIT=62914560
     volumes:
       # Story 8.2 AC1: named volume at /data — database never inside image layer
       - app-data:/data
