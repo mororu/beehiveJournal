@@ -68,7 +68,7 @@
 			<PendingSyncBadge />
 		</div>
 		<div class="nav-right">
-			<span class="nav-username">{data.user.username}</span>
+			<a href="/settings" class="nav-username" title="Einstellungen">{data.user.username}</a>
 			<form method="POST" action="/logout" use:enhance>
 				<button class="logout-button" type="submit">Abmelden</button>
 			</form>
@@ -91,6 +91,9 @@
 			<a href="/stings" class="mobile-nav-link" onclick={() => (menuOpen = false)}>Stiche</a>
 			<a href="/todos" class="mobile-nav-link" onclick={() => (menuOpen = false)}>Aufgaben</a>
 			<a href="/harvests" class="mobile-nav-link" onclick={() => (menuOpen = false)}>Ernten</a>
+			<a href="/settings" class="mobile-nav-link" onclick={() => (menuOpen = false)}
+				>Einstellungen</a
+			>
 			<div class="mobile-menu-badge">
 				<PendingSyncBadge />
 			</div>
@@ -174,6 +177,12 @@
 	.nav-username {
 		font-size: 0.875rem;
 		color: var(--color-text-muted, #6b7280);
+		text-decoration: none;
+	}
+
+	.nav-username:hover {
+		color: var(--color-text, #1a1a1a);
+		text-decoration: underline;
 	}
 
 	.logout-button {

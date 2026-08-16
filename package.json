@@ -16,7 +16,8 @@
 		"db:generate": "dotenv -e .env.local -- drizzle-kit generate",
 		"db:studio": "dotenv -e .env.local -- drizzle-kit studio",
 		"db:drop": "dotenv -e .env.local -- drizzle-kit drop",
-		"create-user": "dotenv -e .env.local -- tsx scripts/create-user.ts"
+		"create-user": "dotenv -e .env.local -- tsx scripts/create-user.ts",
+		"reset-password": "dotenv -e .env.local -- tsx scripts/reset-password.ts"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

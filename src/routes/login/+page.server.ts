@@ -1,10 +1,8 @@
 // src/routes/login/+page.server.ts
 
 import { fail, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
-import * as argon2 from 'argon2';
-import { db } from '$lib/server/db/index.js';
-import { users } from '$lib/server/db/schema.js';
+import { getUserByUsername } from '$lib/server/db/queries/users.js';
+import { verifyPassword } from '$lib/server/password.js';
 import { signJWT, setSessionCookie, getSessionUser } from '$lib/server/auth.js';
 import type { Actions, PageServerLoad } from './$types.js';
 
@@ -51,9 +49,7 @@ export const actions: Actions = {
 
 		try {
 			// Query the users table for the given username
-			const user = await db.query.users.findFirst({
-				where: eq(users.username, username),
-			});
+			const user = getUserByUsername(username);
 
 			// User not found — return the same generic error as wrong password
 			// This prevents username enumeration
@@ -62,7 +58,7 @@ export const actions: Actions = {
 			}
 
 			// Verify password using argon2 — CPU-intensive by design
-			const passwordValid = await argon2.verify(user.passwordHash, password);
+			const passwordValid = await verifyPassword(user.passwordHash, password);
 
 			if (!passwordValid) {
 				return fail(400, { error: 'Ungültiger Benutzername oder Passwort' });

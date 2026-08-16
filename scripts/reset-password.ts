@@ -1,16 +1,19 @@
 #!/usr/bin/env tsx
 /**
- * scripts/create-user.ts
+ * scripts/reset-password.ts
  *
- * Creates a new user in the beehiveJournal database with a securely hashed password.
- * This script is run once at deployment time — there is no registration UI.
+ * Resets the password of an existing user. Use this when the password has been
+ * forgotten — there is no self-service reset flow in the app (no email is stored).
+ *
+ * Unlike create-user.ts this script REQUIRES the user to already exist and only
+ * replaces the password hash. All other data (hives, inspections, ...) is untouched.
  *
  * Usage (local dev):
- *   npm run create-user -- <username> <password>
- *   e.g.: npm run create-user -- manuel mysecretpassword
+ *   npm run reset-password -- <username> <newpassword>
+ *   e.g.: npm run reset-password -- manuel mynewsecretpassword
  *
  * Usage (inside Docker container):
- *   docker exec beehivejournal-app node scripts/create-user.js <username> <password>
+ *   docker exec beehivejournal-app node scripts/reset-password.js <username> <newpassword>
  */
 
 import Database from 'better-sqlite3';
@@ -22,19 +25,19 @@ import { hashPassword, validatePassword } from '../src/lib/server/password.js';
 const args = process.argv.slice(2);
 
 if (args.length === 0) {
-	console.error('Usage: npm run create-user -- <username> <password>');
+	console.error('Usage: npm run reset-password -- <username> <newpassword>');
 	console.error('');
 	console.error('Examples:');
-	console.error('  npm run create-user -- manuel mysecretpassword');
+	console.error('  npm run reset-password -- manuel mynewsecretpassword');
 	console.error(
-		'  docker exec beehivejournal-app node scripts/create-user.js manuel mysecretpassword'
+		'  docker exec beehivejournal-app node scripts/reset-password.js manuel mynewsecretpassword'
 	);
 	process.exit(1);
 }
 
 if (args.length < 2) {
-	console.error('Error: Both <username> and <password> are required.');
-	console.error('Usage: npm run create-user -- <username> <password>');
+	console.error('Error: Both <username> and <newpassword> are required.');
+	console.error('Usage: npm run reset-password -- <username> <newpassword>');
 	process.exit(1);
 }
 
@@ -73,7 +76,6 @@ try {
 	process.exit(1);
 }
 
-// Enable foreign keys (good practice even in scripts)
 db.pragma('foreign_keys = ON');
 
 // ── Check if users table exists ───────────────────────────────────────────────
@@ -89,18 +91,28 @@ if (!tableCheck) {
 	process.exit(1);
 }
 
-// ── Check for existing username ───────────────────────────────────────────────
+// ── The user must already exist ───────────────────────────────────────────────
 
-const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username) as
+	| { id: number }
+	| undefined;
 
-if (existingUser) {
-	console.error(`Error: A user with username '${username}' already exists.`);
-	console.error('The create-user script does not overwrite existing users.');
+if (!existingUser) {
+	console.error(`Error: No user with username '${username}' exists.`);
+	console.error('To create a new user, run: npm run create-user -- <username> <password>');
+	console.error('');
+	const allUsers = db.prepare('SELECT username FROM users').all() as { username: string }[];
+	if (allUsers.length > 0) {
+		console.error('Known usernames:');
+		for (const u of allUsers) console.error(`  - ${u.username}`);
+	} else {
+		console.error('There are no users in the database yet.');
+	}
 	db.close();
 	process.exit(1);
 }
 
-// ── Hash the password ─────────────────────────────────────────────────────────
+// ── Hash the new password ─────────────────────────────────────────────────────
 
 console.log('Hashing password with Argon2id...');
 
@@ -113,22 +125,19 @@ try {
 	process.exit(1);
 }
 
-// ── Insert the user ───────────────────────────────────────────────────────────
-
-const now = Math.floor(Date.now() / 1000); // Unix epoch in seconds
+// ── Update the user ───────────────────────────────────────────────────────────
 
 try {
-	db.prepare('INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)').run(
-		username,
-		passwordHash,
-		now
-	);
+	db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, existingUser.id);
 
-	console.log(`\nSuccess! User '${username}' created.`);
+	console.log(`\nSuccess! Password for user '${username}' has been reset.`);
 	console.log(`Database: ${resolvedPath}`);
-	console.log(`Created at: ${new Date(now * 1000).toISOString()}`);
+	console.log('');
+	console.log('Note: existing sessions stay valid until the cookie expires.');
+	console.log('To force a logout everywhere, change JWT_SECRET and restart the server.');
 } catch (error) {
-	console.error('Error: Failed to insert user into database:', error);
+	console.error('Error: Failed to update password:', error);
+	process.exitCode = 1;
 } finally {
 	db.close();
 }
