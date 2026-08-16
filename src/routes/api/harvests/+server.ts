@@ -1,19 +1,14 @@
 // src/routes/api/harvests/+server.ts
-// GET  /api/harvests   — list all honey harvests (optional ?hiveId=X filter)
+// GET  /api/harvests   — list all honey harvests
 // POST /api/harvests   — create a new honey harvest (used by offline sync)
 
 import { json, error } from '@sveltejs/kit';
 import { getHarvestEntries, createHarvestEntry } from '$lib/server/db/queries/honeyHarvests.js';
-import type { HoneyHarvest } from '$lib/server/db/schema.js';
+import { formatLot } from '$lib/client/utils/date.js';
 import type { RequestHandler } from './$types.js';
 
-export const GET: RequestHandler = ({ url }) => {
-	const hiveIdParam = url.searchParams.get('hiveId');
-	const hiveId = hiveIdParam ? parseInt(hiveIdParam, 10) : undefined;
-	if (hiveIdParam && isNaN(hiveId!)) {
-		error(400, { message: 'Invalid hiveId' });
-	}
-	return json(getHarvestEntries({ hiveId }));
+export const GET: RequestHandler = () => {
+	return json(getHarvestEntries());
 };
 
 export const POST: RequestHandler = async ({ request }) => {
@@ -26,14 +21,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const b = body as Record<string, unknown>;
 
-	if (b.hiveId === undefined || b.hiveId === null || b.hiveId === '') {
-		error(400, { message: 'hiveId is required' });
-	}
-	const hiveId = typeof b.hiveId === 'number' ? b.hiveId : parseInt(String(b.hiveId), 10);
-	if (isNaN(hiveId)) {
-		error(400, { message: 'hiveId must be a valid integer' });
-	}
-
 	if (b.amountKg === undefined || b.amountKg === null || b.amountKg === '') {
 		error(400, { message: 'amountKg is required' });
 	}
@@ -44,23 +31,19 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	const harvestedAt =
 		b.harvestedAt !== undefined ? Math.floor(Number(b.harvestedAt)) : Math.floor(Date.now() / 1000);
-	if (isNaN(harvestedAt)) {
-		error(400, { message: 'harvestedAt must be a valid timestamp' });
+	// Guard against Infinity/-Infinity (isNaN alone passes them), non-positive epochs, and years > 2100.
+	if (!Number.isFinite(harvestedAt) || harvestedAt <= 0 || harvestedAt > 4102444800) {
+		error(400, { message: 'harvestedAt must be a valid unix epoch (seconds) before year 2100' });
 	}
 
 	const notes = typeof b.notes === 'string' ? b.notes.trim() || null : null;
-	const clientId = typeof b.clientId === 'string' ? b.clientId || null : null;
-
-	let result: HoneyHarvest | undefined;
-	try {
-		result = createHarvestEntry({ hiveId, harvestedAt, amountKg, notes, clientId });
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : '';
-		if (msg.includes('FOREIGN KEY')) {
-			error(400, { message: 'Hive not found' });
-		}
-		throw err;
+	if (notes !== null && notes.length > 2000) {
+		error(400, { message: 'notes must be 2000 characters or fewer' });
 	}
+	const clientId = typeof b.clientId === 'string' ? b.clientId || null : null;
+	const lot = formatLot(harvestedAt);
+
+	const result = createHarvestEntry({ harvestedAt, amountKg, lot, notes, clientId });
 
 	if (result === undefined) {
 		return json({ duplicate: true }, { status: 200 });

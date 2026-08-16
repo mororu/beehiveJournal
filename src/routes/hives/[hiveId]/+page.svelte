@@ -97,7 +97,6 @@
 	<!-- ── Primary CTA ────────────────────────────────────────────────────── -->
 	<div class="hive-detail__cta">
 		<a href="/hives/{data.hive.id}/inspect" class="btn btn--primary">+ Neue Kontrolle</a>
-		<a href="/hives/{data.hive.id}/harvests/new" class="btn btn--ghost">+ Neue Ernte</a>
 	</div>
 
 	<!-- ── Date range filter (Story 5.4) ──────────────────────────────────── -->

@@ -79,12 +79,15 @@ export async function syncOutbox(): Promise<void> {
 		}
 
 		for (const entry of harvestEntries) {
+			// Note: legacy IDB entries from before the "drop hive_id" change may still carry a
+			// `hiveId` property. We intentionally do not read or forward it — the server ignores
+			// the field, so legacy entries sync as if they were created post-change. No IDB
+			// upgrade is needed. See tech-spec-honey-harvest-drop-hive-add-lot.md § deviations.
 			try {
 				const res = await fetch('/api/harvests', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
-						hiveId: entry.hiveId,
 						harvestedAt: entry.harvestedAt,
 						amountKg: entry.amountKg,
 						notes: entry.notes,

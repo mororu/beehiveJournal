@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
 	import { formatDate } from '$lib/client/utils/date.js';
 	import type { PageData } from './$types.js';
 
@@ -18,11 +17,6 @@
 	function cancelDelete() {
 		harvestToDelete = null;
 		deleteDialogOpen = false;
-	}
-
-	function applyFilter(hiveId: string) {
-		const url = hiveId ? `/harvests?hiveId=${hiveId}` : '/harvests';
-		goto(url, { replaceState: true });
 	}
 </script>
 
@@ -65,32 +59,10 @@
 		<a href="/harvests/new" class="btn btn--primary">+ Neue Ernte erfassen</a>
 	</div>
 
-	<!-- Hive filter -->
-	{#if data.hives.length > 0}
-		<div class="filter-bar">
-			<label class="filter-label" for="hiveFilter">Nach Bienenstock filtern</label>
-			<select
-				class="filter-select"
-				id="hiveFilter"
-				value={data.activeHiveFilter ? String(data.activeHiveFilter) : ''}
-				onchange={(e) => applyFilter((e.target as HTMLSelectElement).value)}
-			>
-				<option value="">Alle Bienenstöcke</option>
-				{#each data.hives as hive (hive.id)}
-					<option value={String(hive.id)}>{hive.name}</option>
-				{/each}
-			</select>
-		</div>
-	{/if}
-
 	<!-- List -->
 	{#if data.harvests.length === 0}
 		<div class="empty-state">
-			{#if data.activeHiveFilter}
-				<p>Keine Ernten für diesen Bienenstock.</p>
-			{:else}
-				<p>Noch keine Ernten erfasst.</p>
-			{/if}
+			<p>Noch keine Ernten erfasst.</p>
 		</div>
 	{:else}
 		<ul class="harvest-list">
@@ -99,7 +71,7 @@
 					<div class="harvest-card__main">
 						<div class="harvest-card__info">
 							<span class="harvest-card__date">{formatDate(harvest.harvestedAt)}</span>
-							<span class="harvest-card__hive">{harvest.hiveName ?? '—'}</span>
+							<span class="harvest-card__lot">{harvest.lot}</span>
 							<span class="harvest-card__amount">{harvest.amountKg.toFixed(1)} kg</span>
 						</div>
 						<button
@@ -188,40 +160,6 @@
 		margin: 0;
 	}
 
-	/* ── Filter ── */
-	.filter-bar {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		margin-bottom: 1.25rem;
-	}
-
-	.filter-label {
-		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--color-text-muted, #6b7280);
-		white-space: nowrap;
-	}
-
-	.filter-select {
-		height: 40px;
-		padding: 0 0.75rem;
-		font-size: 0.875rem;
-		color: var(--color-text, #1a1a1a);
-		background: var(--color-surface, #ffffff);
-		border: 1.5px solid var(--color-border, #d1d5db);
-		border-radius: 8px;
-		font-family: inherit;
-		flex: 1;
-		max-width: 240px;
-	}
-
-	.filter-select:focus {
-		outline: none;
-		border-color: var(--color-accent, #f59e0b);
-		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-	}
-
 	/* ── Empty state ── */
 	.empty-state {
 		padding: 2rem 1rem;
@@ -273,8 +211,9 @@
 		color: var(--color-text, #1a1a1a);
 	}
 
-	.harvest-card__hive {
+	.harvest-card__lot {
 		font-size: 0.775rem;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		color: var(--color-text-muted, #6b7280);
 	}
 

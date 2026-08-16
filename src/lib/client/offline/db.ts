@@ -38,8 +38,7 @@ export interface OutboxEntry {
 /** Shape of a pending offline honey harvest entry in the harvests outbox. */
 export interface HarvestOutboxEntry {
 	clientId: string; // UUID v4 — keyPath and dedup key
-	hiveId: number;
-	harvestedAt: number; // Unix epoch seconds
+	harvestedAt: number; // Unix epoch seconds (local midnight)
 	amountKg: number; // decimal kg
 	notes: string | null;
 	syncStatus: SyncStatus;

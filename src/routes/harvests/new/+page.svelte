@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
-	import { toDatetimeLocal, fromDatetimeLocal } from '$lib/client/utils/date.js';
+	import { toDateInput, fromDateInput, formatLot } from '$lib/client/utils/date.js';
 	import { addToHarvestsOutbox } from '$lib/client/offline/db.js';
 	import { pendingSync } from '$lib/client/stores/pendingSync.js';
-	import type { ActionData, PageData } from './$types.js';
+	import type { ActionData } from './$types.js';
 
-	let { data, form }: { data: PageData; form: ActionData } = $props();
+	let { form }: { form: ActionData } = $props();
 
 	// Stable UUID for this form instance — one UUID whether online or offline
 	let clientId = $state(crypto.randomUUID());
 	let isSubmitting = $state(false);
 
-	const defaultDatetime = toDatetimeLocal(Math.floor(Date.now() / 1000));
+	let dateInputValue = $state(toDateInput(Math.floor(Date.now() / 1000)));
+	// Fallback to em-dash when the field is empty (browsers allow clearing even `required` inputs)
+	// so the read-only Los display never shows "LNaNNaNNaN".
+	const losValue = $derived(dateInputValue ? formatLot(fromDateInput(dateInputValue)) : '—');
 </script>
 
 <svelte:head>
@@ -25,147 +28,139 @@
 		<h1>Ernte erfassen</h1>
 	</div>
 
-	{#if data.hives.length === 0}
-		<p class="no-hives">
-			Kein aktiver Bienenstock vorhanden. Bitte zuerst einen Bienenstock anlegen.
-		</p>
-	{:else}
-		<form
-			method="POST"
-			use:enhance={(event) => {
-				if (!navigator.onLine) {
-					event.cancel();
-					isSubmitting = true;
+	<form
+		method="POST"
+		use:enhance={(event) => {
+			if (!navigator.onLine) {
+				event.cancel();
+				isSubmitting = true;
 
-					const formData = new FormData(event.formElement);
-					const hiveIdStr = (formData.get('hiveId') as string | null) ?? '';
-					const hiveId = parseInt(hiveIdStr, 10);
-					if (isNaN(hiveId)) {
-						isSubmitting = false;
-						return () => {};
-					}
-					const harvestedAtRaw = (formData.get('harvestedAt') as string | null)?.trim() ?? '';
-					const harvestedAt = harvestedAtRaw
-						? fromDatetimeLocal(harvestedAtRaw)
-						: Math.floor(Date.now() / 1000);
-					const amountKg = parseFloat((formData.get('amountKg') as string | null) ?? '0');
-					const notes = (formData.get('notes') as string | null)?.trim() || null;
-
-					addToHarvestsOutbox({
-						clientId,
-						hiveId,
-						harvestedAt,
-						amountKg,
-						notes,
-						syncStatus: 'pending',
-						createdAt: Math.floor(Date.now() / 1000),
-					})
-						.then(async () => {
-							await pendingSync.refresh();
-							isSubmitting = false;
-							goto('/harvests');
-						})
-						.catch(() => {
-							isSubmitting = false;
-						});
-
+				const formData = new FormData(event.formElement);
+				const harvestedAtRaw = (formData.get('harvestedAt') as string | null)?.trim() ?? '';
+				let harvestedAt: number;
+				if (harvestedAtRaw) {
+					harvestedAt = fromDateInput(harvestedAtRaw);
+				} else {
+					// Fallback = today at local noon (matches fromDateInput's DST-safe anchor)
+					const d = new Date();
+					d.setHours(12, 0, 0, 0);
+					harvestedAt = Math.floor(d.getTime() / 1000);
+				}
+				const amountKg = parseFloat((formData.get('amountKg') as string | null) ?? '0');
+				// Guard against poison-pill outbox entries — the server will reject amountKg <= 0 and
+				// the entry would loop forever on retries. Fail fast client-side instead.
+				if (!Number.isFinite(amountKg) || amountKg <= 0 || amountKg > 9999) {
+					isSubmitting = false;
 					return () => {};
 				}
+				const notes = (formData.get('notes') as string | null)?.trim() || null;
 
-				isSubmitting = true;
-				return async ({ update }) => {
-					await update();
-					isSubmitting = false;
-				};
-			}}
-		>
-			{#if form?.error}
-				<div class="form-error" role="alert">{form.error}</div>
-			{/if}
+				addToHarvestsOutbox({
+					clientId,
+					harvestedAt,
+					amountKg,
+					notes,
+					syncStatus: 'pending',
+					createdAt: Math.floor(Date.now() / 1000),
+				})
+					.then(async () => {
+						await pendingSync.refresh();
+						isSubmitting = false;
+						goto('/harvests');
+					})
+					.catch(() => {
+						isSubmitting = false;
+					});
 
-			<!-- Hive selector -->
-			<div class="field">
-				<label class="field-label" for="hiveId">
-					Bienenstock <span class="required" aria-hidden="true">*</span>
-				</label>
-				<select
-					class="field-input field-input--select"
-					id="hiveId"
-					name="hiveId"
-					required
-					disabled={isSubmitting}
-				>
-					<option value="">Bienenstock wählen</option>
-					{#each data.hives as hive (hive.id)}
-						<option value={String(hive.id)} selected={form?.hiveIdRaw === String(hive.id)}>
-							{hive.name}{hive.number != null ? ` (#${hive.number})` : ''}
-						</option>
-					{/each}
-				</select>
-			</div>
+				return () => {};
+			}
 
-			<!-- Harvest date -->
-			<div class="field">
-				<label class="field-label" for="harvestedAt">
-					Erntedatum <span class="required" aria-hidden="true">*</span>
-				</label>
-				<input
-					class="field-input"
-					type="datetime-local"
-					id="harvestedAt"
-					name="harvestedAt"
-					value={defaultDatetime}
-					required
-					disabled={isSubmitting}
-				/>
-			</div>
+			isSubmitting = true;
+			return async ({ update }) => {
+				await update();
+				isSubmitting = false;
+			};
+		}}
+	>
+		{#if form?.error}
+			<div class="form-error" role="alert">{form.error}</div>
+		{/if}
 
-			<!-- Amount kg -->
-			<div class="field">
-				<label class="field-label" for="amountKg">
-					Menge (kg) <span class="required" aria-hidden="true">*</span>
-				</label>
-				<input
-					class="field-input"
-					type="number"
-					id="amountKg"
-					name="amountKg"
-					step="0.1"
-					min="0.1"
-					max="9999"
-					value={form?.amountKgRaw ?? ''}
-					placeholder="z.B. 11.4"
-					required
-					disabled={isSubmitting}
-				/>
-			</div>
+		<!-- Harvest date -->
+		<div class="field">
+			<label class="field-label" for="harvestedAt">
+				Erntedatum <span class="required" aria-hidden="true">*</span>
+			</label>
+			<input
+				class="field-input"
+				type="date"
+				id="harvestedAt"
+				name="harvestedAt"
+				bind:value={dateInputValue}
+				required
+				disabled={isSubmitting}
+			/>
+		</div>
 
-			<!-- Notes (optional) -->
-			<div class="field">
-				<label class="field-label" for="notes">
-					Notizen <span class="field-hint">(optional)</span>
-				</label>
-				<textarea
-					class="field-input field-input--textarea"
-					id="notes"
-					name="notes"
-					placeholder="z.B. Frühjahrsschleuderung, gute Qualität..."
-					rows="3"
-					maxlength="2000"
-					disabled={isSubmitting}>{form?.notes ?? ''}</textarea
-				>
-			</div>
+		<!-- Los (read-only, derived from date) -->
+		<div class="field">
+			<label class="field-label" for="lot">Los</label>
+			<input
+				class="field-input field-input--readonly"
+				type="text"
+				id="lot"
+				readonly
+				value={losValue}
+				tabindex="-1"
+				aria-readonly="true"
+			/>
+		</div>
 
-			<input type="hidden" name="clientId" value={clientId} />
+		<!-- Amount kg -->
+		<div class="field">
+			<label class="field-label" for="amountKg">
+				Menge (kg) <span class="required" aria-hidden="true">*</span>
+			</label>
+			<input
+				class="field-input"
+				type="number"
+				id="amountKg"
+				name="amountKg"
+				step="0.1"
+				min="0.1"
+				max="9999"
+				value={form?.amountKgRaw ?? ''}
+				placeholder="z.B. 11.4"
+				required
+				disabled={isSubmitting}
+			/>
+		</div>
 
-			<div class="form-actions">
-				<a href="/harvests" class="btn btn--ghost">Abbrechen</a>
-				<button class="btn btn--primary" type="submit" disabled={isSubmitting}>
-					{isSubmitting ? 'Speichern…' : 'Ernte erfassen'}
-				</button>
-			</div>
-		</form>
-	{/if}
+		<!-- Notes (optional) -->
+		<div class="field">
+			<label class="field-label" for="notes">
+				Notizen <span class="field-hint">(optional)</span>
+			</label>
+			<textarea
+				class="field-input field-input--textarea"
+				id="notes"
+				name="notes"
+				placeholder="z.B. Frühjahrsschleuderung, gute Qualität..."
+				rows="3"
+				maxlength="2000"
+				disabled={isSubmitting}>{form?.notes ?? ''}</textarea
+			>
+		</div>
+
+		<input type="hidden" name="clientId" value={clientId} />
+
+		<div class="form-actions">
+			<a href="/harvests" class="btn btn--ghost">Abbrechen</a>
+			<button class="btn btn--primary" type="submit" disabled={isSubmitting}>
+				{isSubmitting ? 'Speichern…' : 'Ernte erfassen'}
+			</button>
+		</div>
+	</form>
 </div>
 
 <style>
@@ -195,15 +190,6 @@
 		font-weight: 700;
 		color: var(--color-text, #1a1a1a);
 		margin: 0;
-	}
-
-	.no-hives {
-		font-size: 0.9rem;
-		color: var(--color-text-muted, #6b7280);
-		padding: 2rem 1rem;
-		text-align: center;
-		border: 1.5px dashed var(--color-border, #e5e7eb);
-		border-radius: 10px;
 	}
 
 	.form-error {
@@ -265,8 +251,11 @@
 		cursor: not-allowed;
 	}
 
-	.field-input--select {
-		appearance: auto;
+	.field-input--readonly {
+		background: var(--color-bg, #f3f4f6);
+		color: var(--color-text-muted, #6b7280);
+		cursor: default;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 	}
 
 	.field-input--textarea {

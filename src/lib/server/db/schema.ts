@@ -93,17 +93,18 @@ export const stingIncidents = sqliteTable(
 );
 
 // ─── Honey Harvests ──────────────────────────────────────────────────────────
-// Log of honey harvests per hive. Supports offline deduplication via clientId.
-// hive_id is required and cascades on delete — harvests are part of the hive lifecycle.
+// Log of honey harvests. NOT tied to a specific hive — a single harvest lot is
+// drawn from multiple hives, so per-hive contribution is intentionally not tracked.
+// See tech-spec-honey-harvest-drop-hive-add-lot.md for the design rationale.
+// `lot` is a display label recomputed server-side on every insert from `harvested_at`
+// as `L` + ddmmyyyy (see formatLot in $lib/client/utils/date.ts).
 export const honeyHarvests = sqliteTable(
 	'honey_harvests',
 	{
 		id: integer('id').primaryKey({ autoIncrement: true }),
-		hiveId: integer('hive_id')
-			.notNull()
-			.references(() => hives.id, { onDelete: 'cascade' }),
-		harvestedAt: integer('harvested_at').notNull(), // Unix epoch seconds
+		harvestedAt: integer('harvested_at').notNull(), // Unix epoch seconds (local noon of the chosen day — DST-safe anchor)
 		amountKg: real('amount_kg').notNull(), // decimal kg, e.g. 11.4
+		lot: text('lot').notNull(), // `L` + ddmmyyyy — recomputed server-side on every insert
 		notes: text('notes'), // optional free text
 		clientId: text('client_id'), // UUID v4 for offline dedup; nullable
 		createdAt: integer('created_at').notNull(), // Unix epoch
