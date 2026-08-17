@@ -113,6 +113,30 @@ export const honeyHarvests = sqliteTable(
 	(t) => [uniqueIndex('honey_harvests_client_id_unique').on(t.clientId)]
 );
 
+// ─── Diary Entries ───────────────────────────────────────────────────────────
+// Global journal — one row per beekeeping milestone. Not tied to a hive.
+// `entry_date` is Unix epoch seconds at local noon (DST-safe anchor).
+// Weather snapshot mirrors the `inspections` column naming for cross-entity consistency.
+// For today/future entries, weather_temp/wind are instantaneous (forecast API);
+// for backdated entries they are the day's max (archive API).
+// `weather_history` is JSON: 30 daily aggregates ending at entry_date (oldest → newest).
+export const diaryEntries = sqliteTable('diary_entries', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	entryDate: integer('entry_date').notNull(), // Unix epoch seconds (local noon)
+	title: text('title').notNull(), // max 200 chars enforced at app layer
+	body: text('body'), // nullable, max 5000 chars enforced at app layer
+	weatherLat: real('weather_lat'),
+	weatherLon: real('weather_lon'),
+	weatherTemp: real('weather_temp'),
+	weatherDesc: text('weather_desc'),
+	weatherWindSpeed: real('weather_wind_speed'),
+	weatherCode: integer('weather_code'),
+	weatherUnavailable: integer('weather_unavailable', { mode: 'boolean' }).notNull().default(false),
+	weatherHistory: text('weather_history'), // JSON: WeatherHistoryDay[] | null
+	createdAt: integer('created_at').notNull(), // Unix epoch
+	updatedAt: integer('updated_at').notNull(), // Unix epoch
+});
+
 // ─── Todos ───────────────────────────────────────────────────────────────────
 // Task items linked to a specific hive. Deleted when the hive is deleted (cascade).
 export const todos = sqliteTable('todos', {
@@ -141,3 +165,5 @@ export type Todo = typeof todos.$inferSelect;
 export type NewTodo = typeof todos.$inferInsert;
 export type HoneyHarvest = typeof honeyHarvests.$inferSelect;
 export type NewHoneyHarvest = typeof honeyHarvests.$inferInsert;
+export type DiaryEntry = typeof diaryEntries.$inferSelect;
+export type NewDiaryEntry = typeof diaryEntries.$inferInsert;

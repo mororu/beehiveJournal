@@ -64,6 +64,7 @@
 			<a href="/stings" class="nav-link">Stiche</a>
 			<a href="/todos" class="nav-link">Aufgaben</a>
 			<a href="/harvests" class="nav-link">Ernten</a>
+			<a href="/diary" class="nav-link">Tagebuch</a>
 			<!-- Story 7.4 AC6: shows count of pending offline entries -->
 			<PendingSyncBadge />
 		</div>
@@ -91,6 +92,7 @@
 			<a href="/stings" class="mobile-nav-link" onclick={() => (menuOpen = false)}>Stiche</a>
 			<a href="/todos" class="mobile-nav-link" onclick={() => (menuOpen = false)}>Aufgaben</a>
 			<a href="/harvests" class="mobile-nav-link" onclick={() => (menuOpen = false)}>Ernten</a>
+			<a href="/diary" class="mobile-nav-link" onclick={() => (menuOpen = false)}>Tagebuch</a>
 			<a href="/settings" class="mobile-nav-link" onclick={() => (menuOpen = false)}
 				>Einstellungen</a
 			>

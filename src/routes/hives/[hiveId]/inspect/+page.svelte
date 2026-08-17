@@ -4,6 +4,7 @@
 	import { addToOutbox } from '$lib/client/offline/db.js';
 	import { pendingSync } from '$lib/client/stores/pendingSync.js';
 	import { fromDatetimeLocal, toDatetimeLocal } from '$lib/client/utils/date.js';
+	import { wmoDescription } from '$lib/utils/weather.js';
 	import PhotoCapture from '$lib/components/PhotoCapture.svelte';
 	import type { ActionData, PageData } from './$types.js';
 
@@ -37,22 +38,6 @@
 		lat: number;
 		lon: number;
 	} | null>(null);
-
-	// WMO weather code → human-readable description
-	function wmoDescription(code: number): string {
-		if (code === 0) return 'Klarer Himmel';
-		if (code === 1) return 'Überwiegend klar';
-		if (code === 2) return 'Teilweise bewölkt';
-		if (code === 3) return 'Bedeckt';
-		if (code <= 49) return 'Neblig';
-		if (code <= 57) return 'Nieselregen';
-		if (code <= 67) return 'Regen';
-		if (code <= 77) return 'Schnee';
-		if (code <= 82) return 'Regenschauer';
-		if (code <= 86) return 'Schneeschauer';
-		if (code <= 99) return 'Gewitter';
-		return 'Unbekannt';
-	}
 
 	// Fetch weather on mount, client-side only
 	// (using $effect to run after render)
