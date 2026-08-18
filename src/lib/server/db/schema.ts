@@ -113,6 +113,43 @@ export const honeyHarvests = sqliteTable(
 	(t) => [uniqueIndex('honey_harvests_client_id_unique').on(t.clientId)]
 );
 
+// ─── Container Sizes ─────────────────────────────────────────────────────────
+// Editable list of honey container types used for sales (e.g. "500g Glas").
+// `sizeG` is the container capacity in grams. Total sale kg is derived at
+// read time as `sale.amount × containerSize.sizeG / 1000` — never stored.
+export const containerSizes = sqliteTable('container_sizes', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	name: text('name').notNull(), // max 60 chars enforced at app layer
+	sizeG: integer('size_g').notNull(), // grams, 1..5000 enforced at app layer
+	createdAt: integer('created_at').notNull(), // Unix epoch
+	updatedAt: integer('updated_at').notNull(), // Unix epoch
+});
+
+// ─── Honey Sales ─────────────────────────────────────────────────────────────
+// Log of honey sold to a customer, or given as a gift.
+// FK strategy: both harvestId and containerSizeId use ON DELETE RESTRICT to
+// protect the audit trail — deleting a referenced harvest or container size
+// is rejected until the referring sales are removed first.
+// `priceChf` is null when `isGift = true`; else >= 0 (0 is a paid-for-free
+// sample, distinct from a formal gift).
+export const honeySales = sqliteTable('honey_sales', {
+	id: integer('id').primaryKey({ autoIncrement: true }),
+	harvestId: integer('harvest_id')
+		.notNull()
+		.references(() => honeyHarvests.id, { onDelete: 'restrict' }),
+	containerSizeId: integer('container_size_id')
+		.notNull()
+		.references(() => containerSizes.id, { onDelete: 'restrict' }),
+	soldAt: integer('sold_at').notNull(), // Unix epoch seconds (local noon)
+	amount: integer('amount').notNull(), // count of containers, 1..10000
+	customerName: text('customer_name').notNull(), // max 200 chars enforced at app layer
+	priceChf: real('price_chf'), // nullable — null when isGift = true; else >= 0
+	isGift: integer('is_gift', { mode: 'boolean' }).notNull().default(false),
+	notes: text('notes'), // nullable, max 2000 chars enforced at app layer
+	createdAt: integer('created_at').notNull(), // Unix epoch
+	updatedAt: integer('updated_at').notNull(), // Unix epoch
+});
+
 // ─── Diary Entries ───────────────────────────────────────────────────────────
 // Global journal — one row per beekeeping milestone. Not tied to a hive.
 // `entry_date` is Unix epoch seconds at local noon (DST-safe anchor).
@@ -165,5 +202,9 @@ export type Todo = typeof todos.$inferSelect;
 export type NewTodo = typeof todos.$inferInsert;
 export type HoneyHarvest = typeof honeyHarvests.$inferSelect;
 export type NewHoneyHarvest = typeof honeyHarvests.$inferInsert;
+export type ContainerSize = typeof containerSizes.$inferSelect;
+export type NewContainerSize = typeof containerSizes.$inferInsert;
+export type HoneySale = typeof honeySales.$inferSelect;
+export type NewHoneySale = typeof honeySales.$inferInsert;
 export type DiaryEntry = typeof diaryEntries.$inferSelect;
 export type NewDiaryEntry = typeof diaryEntries.$inferInsert;

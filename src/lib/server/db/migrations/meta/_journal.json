@@ -71,6 +71,13 @@
       "when": 1786907619465,
       "tag": "0009_amazing_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786995305911,
+      "tag": "0010_chief_starjammers",
+      "breakpoints": true
     }
   ]
 }

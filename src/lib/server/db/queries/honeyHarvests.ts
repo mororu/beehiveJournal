@@ -2,10 +2,12 @@
 //
 // All Drizzle queries for the honey_harvests table.
 
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { db } from '../index.js';
 import { honeyHarvests } from '../schema.js';
 import type { HoneyHarvest, NewHoneyHarvest } from '../schema.js';
+
+export type HarvestWithRemaining = HoneyHarvest & { soldKg: number; remainingKg: number };
 
 // ─── Read ─────────────────────────────────────────────────────────────────────
 
@@ -14,6 +16,61 @@ import type { HoneyHarvest, NewHoneyHarvest } from '../schema.js';
  */
 export function getHarvestEntries(): HoneyHarvest[] {
 	return db.select().from(honeyHarvests).orderBy(desc(honeyHarvests.harvestedAt)).all();
+}
+
+/**
+ * Returns all honey harvests annotated with soldKg + remainingKg, using a
+ * correlated subquery to sum sold grams per lot. A LEFT JOIN + GROUP BY would
+ * row-multiply when a lot has >=2 sales unless every selected column appears in
+ * the GROUP BY — the correlated subquery avoids that fragility.
+ * COALESCE(size_g, 0) inside the SUM is belt-and-braces even though the FK is
+ * ON DELETE RESTRICT.
+ */
+export function getHarvestEntriesWithRemaining(): HarvestWithRemaining[] {
+	const rows = db.all<{
+		id: number;
+		harvested_at: number;
+		amount_kg: number;
+		lot: string;
+		notes: string | null;
+		client_id: string | null;
+		created_at: number;
+		updated_at: number;
+		sold_g: number;
+	}>(sql`
+		SELECT
+			hh.id,
+			hh.harvested_at,
+			hh.amount_kg,
+			hh.lot,
+			hh.notes,
+			hh.client_id,
+			hh.created_at,
+			hh.updated_at,
+			COALESCE((
+				SELECT SUM(hs.amount * COALESCE(cs.size_g, 0))
+				FROM honey_sales hs
+				LEFT JOIN container_sizes cs ON cs.id = hs.container_size_id
+				WHERE hs.harvest_id = hh.id
+			), 0) AS sold_g
+		FROM honey_harvests hh
+		ORDER BY hh.harvested_at DESC
+	`);
+	return rows.map((r) => {
+		const soldKg = r.sold_g / 1000;
+		return {
+			id: r.id,
+			harvestedAt: r.harvested_at,
+			amountKg: r.amount_kg,
+			lot: r.lot,
+			notes: r.notes,
+			clientId: r.client_id,
+			createdAt: r.created_at,
+			updatedAt: r.updated_at,
+			soldKg,
+			remainingKg: r.amount_kg - soldKg,
+		};
+	});
 }
 
 /**
