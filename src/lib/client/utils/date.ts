@@ -79,3 +79,19 @@ export function fromDateInput(value: string): number {
 	if (!y || !m || !d) return NaN;
 	return Math.floor(new Date(y, m - 1, d, 12, 0, 0).getTime() / 1000);
 }
+
+/** German short month names, indexed 0–11 to match Date.getUTCMonth(). */
+export const MONTH_NAMES_SHORT_DE = [
+	'Jan',
+	'Feb',
+	'Mär',
+	'Apr',
+	'Mai',
+	'Jun',
+	'Jul',
+	'Aug',
+	'Sep',
+	'Okt',
+	'Nov',
+	'Dez',
+] as const;
