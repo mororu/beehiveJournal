@@ -6,6 +6,7 @@ import { eq, desc, sql } from 'drizzle-orm';
 import { db } from '../index.js';
 import { stingIncidents, hives } from '../schema.js';
 import type { StingIncident, NewStingIncident, Hive } from '../schema.js';
+import { monthKey, yearOf, monthRange } from '../../statsBuckets.js';
 
 // ─── Extended type ────────────────────────────────────────────────────────────
 
@@ -108,45 +109,7 @@ export function deleteStingIncident(id: number): boolean {
 
 // ─── Statistics ───────────────────────────────────────────────────────────────
 //
-// Buckets are computed in UTC — deliberately, not in Europe/Zurich.
-//
-// fromDatetimeLocal() runs SERVER-side (src/routes/stings/new/+page.server.ts) and the
-// app container sets no TZ (node:20-alpine → UTC), so stung_at stores the wall clock the
-// user typed as if it were UTC. Reading it back with getUTC*() reproduces exactly the
-// entered date. Bucketing in Europe/Zurich would shift every value +1/+2h and push
-// evening entries into the following day, month or year.
-
-/** Unix epoch seconds → "YYYY-MM" in UTC. */
-function monthKey(epoch: number): string {
-	const d = new Date(epoch * 1000);
-	return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-/** Unix epoch seconds → calendar year in UTC. */
-function yearOf(epoch: number): number {
-	return new Date(epoch * 1000).getUTCFullYear();
-}
-
-/** Inclusive list of "YYYY-MM" keys from `from` to `to`; [] if from > to. */
-function monthRange(from: string, to: string): string[] {
-	const [fromYear, fromMonth] = from.split('-').map(Number);
-	const [toYear, toMonth] = to.split('-').map(Number);
-
-	const keys: string[] = [];
-	let year = fromYear;
-	let month = fromMonth;
-
-	while (year < toYear || (year === toYear && month <= toMonth)) {
-		keys.push(`${year}-${String(month).padStart(2, '0')}`);
-		month += 1;
-		if (month > 12) {
-			month = 1;
-			year += 1;
-		}
-	}
-
-	return keys;
-}
+// UTC bucketing rationale lives in $lib/server/statsBuckets.ts
 
 export interface StingMonthBucket {
 	key: string; // "YYYY-MM"
